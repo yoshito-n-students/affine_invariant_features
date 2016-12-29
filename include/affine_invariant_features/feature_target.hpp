@@ -49,9 +49,7 @@ public:
 
     if (!contour.empty()) {
       data.mask = cv::Mat::zeros(data.image.size(), CV_8UC1);
-      std::vector< std::vector< cv::Point2f > > points(1);
-      points[0].insert(points[0].end(), contour.begin(), contour.end());
-      cv::fillPoly(data.mask, points, 255);
+      cv::fillPoly(data.mask, std::vector< std::vector< cv::Point > >(1, contour), 255);
     }
 
     return data;

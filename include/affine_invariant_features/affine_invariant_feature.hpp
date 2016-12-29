@@ -116,7 +116,7 @@ private:
     CV_Assert(base_feature_);
 
     // affine transformation to be applied to the given image and mask
-    cv::Matx32f affine(cv::Matx32f::eye());
+    cv::Matx23f affine(cv::Matx23f::eye());
 
     // apply the affine transformation to the image on the basis of the given parameters
     cv::Mat image(src_image.clone());
@@ -164,14 +164,14 @@ private:
     base_feature_->detectAndCompute(image, mask, keypoints, descriptors, useProvidedKeypoints);
 
     // invert the positions of the detected keypoints
-    cv::Matx32f invert_affine;
+    cv::Matx23f invert_affine;
     cv::invertAffineTransform(affine, invert_affine);
     for (std::vector< cv::KeyPoint >::iterator keypoint = keypoints.begin();
          keypoint != keypoints.end(); ++keypoint) {
-      cv::Vec2f pt(keypoint->pt.x, keypoint->pt.y);
+      // convert cv::Point2f to cv::Mat (1x1,2ch) without copying data.
+      // this is required because cv::transform does not accept cv::Point2f.
+      cv::Mat pt(cv::Mat(keypoint->pt, false).reshape(2));
       cv::transform(pt, pt, invert_affine);
-      keypoint->pt.x = pt[0];
-      keypoint->pt.y = pt[1];
     }
   }
 };
