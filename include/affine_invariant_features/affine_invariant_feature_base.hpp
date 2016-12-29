@@ -21,22 +21,10 @@ public:
   //
   // inherited functions from cv::Feature2D or its base class.
   // These just call corresponding one of the base feature.
-  // Functions not implemented here are overloaded in AffineInvariantFeature.
-  // (e.g. detectAndCompute, getDefaultName())
+  // detectAndCompute() and  getDefaultName() are overloaded in AffineInvariantFeature.
+  // detect() and compute() are not overloaded
+  // because the default implementation calls detectAndCompute().
   //
-
-  virtual void compute(cv::InputArray image, std::vector< cv::KeyPoint > &keypoints,
-                       cv::OutputArray descriptors) {
-    CV_Assert(base_feature_);
-    base_feature_->compute(image, keypoints, descriptors);
-  }
-
-  virtual void compute(cv::InputArrayOfArrays images,
-                       std::vector< std::vector< cv::KeyPoint > > &keypoints,
-                       cv::OutputArrayOfArrays descriptors) {
-    CV_Assert(base_feature_);
-    base_feature_->compute(images, keypoints, descriptors);
-  }
 
   virtual int defaultNorm() const {
     CV_Assert(base_feature_);
@@ -53,20 +41,10 @@ public:
     return base_feature_->descriptorType();
   }
 
-  virtual void detect(cv::InputArray image, std::vector< cv::KeyPoint > &keypoints,
-                      cv::InputArray mask = cv::noArray()) {
+  virtual bool empty() const {
     CV_Assert(base_feature_);
-    base_feature_->detect(image, keypoints, mask);
+    return base_feature_->empty();
   }
-
-  virtual void detect(cv::InputArrayOfArrays images,
-                      std::vector< std::vector< cv::KeyPoint > > &keypoints,
-                      cv::InputArrayOfArrays masks = cv::noArray()) {
-    CV_Assert(base_feature_);
-    base_feature_->detect(images, keypoints, masks);
-  }
-
-  virtual bool empty() const { return (base_feature_ ? base_feature_->empty() : false); }
 
   virtual void read(const cv::FileNode &fn) {
     CV_Assert(base_feature_);

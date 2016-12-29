@@ -53,8 +53,6 @@ public:
   virtual void detectAndCompute(cv::InputArray image, cv::InputArray mask,
                                 std::vector< cv::KeyPoint > &keypoints, cv::OutputArray descriptors,
                                 bool useProvidedKeypoints = false) {
-    CV_Assert(base_feature_);
-
     // extract inputs
     const cv::Mat image_mat(image.getMat());
     const cv::Mat mask_mat(mask.getMat());
@@ -76,7 +74,7 @@ public:
     const int ntasks(tilt_params.size());
     std::vector< std::vector< cv::KeyPoint > > keypoints_array(ntasks);
     std::vector< cv::Mat > descriptors_array(ntasks);
-    // TODO: make useProvidedKeypoints affect
+    // TODO: properly handle useProvidedKeypoints
 
     // bind each parallel task and arguments
     ParallelLoopBody body;
@@ -97,13 +95,7 @@ public:
     }
 
     // extend descriptors
-    for (int i = 0; i < ntasks; ++i) {
-      if (!descriptors_array[i].empty()) {
-        descriptors.create(keypoints.size(), descriptors_array[i].cols,
-                           descriptors_array[i].type());
-        break;
-      }
-    }
+    descriptors.create(keypoints.size(), descriptorSize(), descriptorType());
     {
       cv::Mat descriptors_mat(descriptors.getMat());
       int rows(0);

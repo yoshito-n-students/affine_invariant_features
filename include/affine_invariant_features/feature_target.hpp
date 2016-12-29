@@ -8,8 +8,6 @@
 #include <string>
 #include <vector>
 
-#include <ros/console.h>
-
 #include <affine_invariant_features/cv_serializable.hpp>
 
 #include <boost/filesystem.hpp>
@@ -40,20 +38,17 @@ public:
     if (check_md5) {
       const std::string actual_md5(md5(imagePath));
       if (imageMD5 != actual_md5) {
-        ROS_ERROR_STREAM("MD5 mismatch (description: " << imageMD5 << ", actual: " << actual_md5
-                                                       << ")");
         return data;
       }
     }
 
     data.image = cv::imread(imagePath);
     if (data.image.empty()) {
-      ROS_ERROR_STREAM("Could not load " << imagePath);
       return data;
     }
 
-    data.mask = cv::Mat::zeros(data.image.size(), CV_8UC1);
     if (!contour.empty()) {
+      data.mask = cv::Mat::zeros(data.image.size(), CV_8UC1);
       std::vector< std::vector< cv::Point2f > > points(1);
       points[0].insert(points[0].end(), contour.begin(), contour.end());
       cv::fillPoly(data.mask, points, 255);
