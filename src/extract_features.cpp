@@ -33,7 +33,7 @@ int main(int argc, char *argv[]) {
 
   const cv::FileStorage target_file(target_path, cv::FileStorage::READ);
   aif::TargetDescription target_desc;
-  target_file["TargetDescription"] >> target_desc;
+  target_file[target_desc.getDefaultName()] >> target_desc;
   const aif::TargetData target_data(target_desc.toData());
   if (target_data.image.empty()) {
     std::cerr << "Could not load a target image from " << target_path << std::endl;
@@ -48,9 +48,9 @@ int main(int argc, char *argv[]) {
                             results.descriptors);
 
   cv::FileStorage result_file(result_path, cv::FileStorage::WRITE);
-  result_file << "Parameters" << *params;
-  result_file << "TargetDescription" << target_desc;
-  result_file << "Results" << results;
+  result_file << params->getDefaultName() << *params;
+  result_file << target_desc.getDefaultName() << target_desc;
+  result_file << results.getDefaultName() << results;
 
   return 0;
 }

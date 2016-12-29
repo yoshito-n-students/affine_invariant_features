@@ -57,6 +57,8 @@ public:
     fs << "}";
   }
 
+  virtual std::string getDefaultName() const { return "SIFTParameters"; }
+
 public:
   int nfeatures;
   int nOctaveLayers;
@@ -108,6 +110,8 @@ public:
     fs << "}";
   }
 
+  virtual std::string getDefaultName() const { return "AKAZEParameters"; }
+
 protected:
   static const cv::AKAZE &defaultAKAZE() {
     static cv::Ptr< cv::AKAZE > default_akaze(cv::AKAZE::create());
@@ -154,6 +158,8 @@ public:
     fs << "}";
   }
 
+  virtual std::string getDefaultName() const { return "BRISKParameters"; }
+
 public:
   int threshold;
   int nOctaves;
@@ -165,8 +171,11 @@ public:
 //
 
 #define AIF_RETURN_IF_CREATE(type)                                                                 \
-  if (type_name == #type) {                                                                        \
-    return new type();                                                                             \
+  {                                                                                                \
+    const cv::Ptr< type > params(new type());                                                      \
+    if (type_name == params->getDefaultName()) {                                                   \
+      return params;                                                                               \
+    }                                                                                              \
   }
 
 static inline cv::Ptr< FeatureParameters > createFeatureParameters(const std::string &type_name) {
@@ -177,10 +186,13 @@ static inline cv::Ptr< FeatureParameters > createFeatureParameters(const std::st
 }
 
 #define AIF_RETURN_IF_READ(type)                                                                   \
-  if (!fn[#type].empty()) {                                                                        \
-    cv::Ptr< type > params(new type());                                                            \
-    fn[#type] >> *params;                                                                          \
-    return params;                                                                                 \
+  {                                                                                                \
+    const cv::Ptr< type > params(new type());                                                      \
+    const cv::FileNode param_node(fn[params->getDefaultName()]);                                   \
+    if (!param_node.empty()) {                                                                     \
+      param_node >> *params;                                                                       \
+      return params;                                                                               \
+    }                                                                                              \
   }
 
 static inline cv::Ptr< FeatureParameters > readFeatureParameters(const cv::FileNode &fn) {

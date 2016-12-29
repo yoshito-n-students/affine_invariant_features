@@ -60,20 +60,33 @@ public:
   virtual void read(const cv::FileNode &fn) {
     fn["imagePath"] >> imagePath;
     fn["imageMD5"] >> imageMD5;
-    fn["contour"] >> contour;
+    const cv::FileNode contour_node(fn["contour"]);
+    const std::size_t contour_size(contour_node.isSeq() ? contour_node.size() : 0);
+    contour.resize(contour_size);
+    for (std::size_t i = 0; i < contour_size; ++i) {
+      contour_node[i] >> contour[i];
+    }
   }
 
   virtual void write(cv::FileStorage &fs) const {
     fs << "{";
     fs << "imagePath" << imagePath;
     fs << "imageMD5" << imageMD5;
-    fs << "contour" << contour;
+    fs << "contour";
+    fs << "[:";
+    for (std::vector< cv::Point >::const_iterator point = contour.begin(); point != contour.end();
+         ++point) {
+      fs << *point;
+    }
+    fs << "]";
     fs << "}";
   }
 
+  virtual std::string getDefaultName() const { return "TargetDescription"; }
+
 public:
   static std::string absolutePath(const std::string &path) {
-    return boost::filesystem::absolute(path).string();
+    return boost::filesystem::canonical(path).string();
   }
 
   static std::string md5(const std::string &path) {

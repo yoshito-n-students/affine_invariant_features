@@ -25,7 +25,7 @@ int main(int argc, char *argv[]) {
   }
 
   cv::FileStorage file(path, cv::FileStorage::WRITE);
-  file << type << *params;
+  file << params->getDefaultName() << *params;
   std::cout << "Wrote parameter set whose type is " << type << " to " << path << std::endl;
 
   return 0;

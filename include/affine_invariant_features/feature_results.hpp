@@ -28,6 +28,8 @@ public:
     fs << "}";
   }
 
+  virtual std::string getDefaultName() const { return "Results"; }
+
 public:
   std::vector< cv::KeyPoint > keypoints;
   cv::Mat descriptors;

@@ -32,7 +32,7 @@ int main(int argc, char *argv[]) {
   target.contour.push_back(cv::Point(0, image.rows - 1));
 
   cv::FileStorage file(file_path, cv::FileStorage::WRITE);
-  file << "TargetDescription" << target;
+  file << target.getDefaultName() << target;
   std::cout << "Wrote a description of " << image_path << " to " << file_path << std::endl;
 
   return 0;
