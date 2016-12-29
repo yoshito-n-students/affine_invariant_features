@@ -148,6 +148,22 @@ add_executable(
   test_affine_invariant_features
   src/test_affine_invariant_features.cpp
   )
+add_executable(
+  generate_parameter_file
+  src/generate_parameter_file.cpp
+  )
+add_executable(
+  generate_target_file
+  src/generate_target_file.cpp
+  )
+add_executable(
+  extract_features
+  src/extract_features.cpp
+  )
+add_executable(
+  match_features
+  src/match_features.cpp
+  )
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above
@@ -156,6 +172,34 @@ add_executable(
 ## Specify libraries to link a library or executable target against
 target_link_libraries(
   test_affine_invariant_features
+  ${catkin_LIBRARIES}
+  ${Boost_LIBRARIES}
+  ${OpenCV_LIBRARIES}
+  ${OPENSSL_LIBRARIES}
+  )
+target_link_libraries(
+  generate_parameter_file
+  ${catkin_LIBRARIES}
+  ${Boost_LIBRARIES}
+  ${OpenCV_LIBRARIES}
+  ${OPENSSL_LIBRARIES}
+  )
+target_link_libraries(
+  generate_target_file
+  ${catkin_LIBRARIES}
+  ${Boost_LIBRARIES}
+  ${OpenCV_LIBRARIES}
+  ${OPENSSL_LIBRARIES}
+  )
+target_link_libraries(
+  extract_features
+  ${catkin_LIBRARIES}
+  ${Boost_LIBRARIES}
+  ${OpenCV_LIBRARIES}
+  ${OPENSSL_LIBRARIES}
+  )
+target_link_libraries(
+  match_features
   ${catkin_LIBRARIES}
   ${Boost_LIBRARIES}
   ${OpenCV_LIBRARIES}
