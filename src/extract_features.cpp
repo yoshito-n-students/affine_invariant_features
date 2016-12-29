@@ -34,9 +34,14 @@ int main(int argc, char *argv[]) {
   const cv::FileStorage target_file(target_path, cv::FileStorage::READ);
   aif::TargetDescription target_desc;
   target_file[target_desc.getDefaultName()] >> target_desc;
+  if (target_desc.imagePath.empty()) {
+    std::cerr << "Could not load an image path from " << target_path << std::endl;
+    return 1;
+  }
+
   const aif::TargetData target_data(target_desc.toData());
   if (target_data.image.empty()) {
-    std::cerr << "Could not load a target image from " << target_path << std::endl;
+    std::cerr << "Could not load a target image described in " << target_path << std::endl;
     return 1;
   }
 
@@ -51,6 +56,8 @@ int main(int argc, char *argv[]) {
   result_file << params->getDefaultName() << *params;
   result_file << target_desc.getDefaultName() << target_desc;
   result_file << results.getDefaultName() << results;
+
+  std::cout << "Wrote context and results of feature extraction to " << result_path << std::endl;
 
   return 0;
 }
