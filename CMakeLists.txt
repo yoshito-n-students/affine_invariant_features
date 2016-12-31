@@ -16,6 +16,7 @@ find_package(
   )
 find_package(
   OpenCV REQUIRED COMPONENTS 
+  calib3d
   core
   features2d
   highgui
