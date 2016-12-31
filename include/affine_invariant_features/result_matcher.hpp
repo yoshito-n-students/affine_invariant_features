@@ -65,7 +65,7 @@ public:
     }
 
     // further filter matches compatible to a query-to-train registration
-    std::vector< bool > mask;
+    std::vector< unsigned char > mask;
     {
       std::vector< cv::Point2f > query_points;
       std::vector< cv::Point2f > train_points;
@@ -79,7 +79,7 @@ public:
 
     // pack the final matches
     for (std::size_t i = 0; i < unique_matches.size(); ++i) {
-      if (!mask[i]) {
+      if (mask[i] == 0) {
         continue;
       }
       matches.push_back(unique_matches[i]);
