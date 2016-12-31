@@ -146,10 +146,6 @@ include_directories(
 
 ## Declare a C++ executable
 add_executable(
-  test_affine_invariant_features
-  src/test_affine_invariant_features.cpp
-  )
-add_executable(
   generate_parameter_file
   src/generate_parameter_file.cpp
   )
@@ -171,13 +167,6 @@ add_executable(
 # add_dependencies(affine_invariant_features_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
-target_link_libraries(
-  test_affine_invariant_features
-  ${catkin_LIBRARIES}
-  ${Boost_LIBRARIES}
-  ${OpenCV_LIBRARIES}
-  ${OPENSSL_LIBRARIES}
-  )
 target_link_libraries(
   generate_parameter_file
   ${catkin_LIBRARIES}
