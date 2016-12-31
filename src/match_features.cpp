@@ -70,6 +70,7 @@ int main(int argc, char *argv[]) {
             << std::endl;
 
   aif::ResultMatcher matcher(results2);
+  std::cout << "Matching feature points. This may take seconds." << std::endl;
   cv::Matx33f transform;
   std::vector< cv::DMatch > matches;
   matcher.match(results1, transform, matches);
