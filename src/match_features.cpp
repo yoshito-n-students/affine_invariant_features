@@ -32,10 +32,12 @@ bool readEverything(const std::string &path, aif::TargetData &target_data, aif::
 }
 
 cv::Mat shadeImage(const cv::Mat &src, const cv::Mat &mask) {
-  cv::Mat dst(src.clone());
-  if (!mask.empty()) {
-    cv::Mat shade(src / 2);
-    shade.copyTo(dst, mask);
+  cv::Mat dst;
+  if (mask.empty()) {
+    dst = src.clone();
+  } else {
+    dst = src / 4;
+    src.copyTo(dst, mask);
   }
   return dst;
 }
@@ -78,6 +80,7 @@ int main(int argc, char *argv[]) {
   cv::Mat image;
   cv::drawMatches(image1, results1.keypoints, image2, results2.keypoints, matches, image);
 
+  std::cout << "Showing feature points and matches. Press any key to continue." << std::endl;
   cv::imshow("Matches", image);
   cv::waitKey(0);
 
