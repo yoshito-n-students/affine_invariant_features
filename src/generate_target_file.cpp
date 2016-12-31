@@ -1,7 +1,7 @@
 #include <iostream>
 #include <string>
 
-#include <affine_invariant_features/feature_target.hpp>
+#include <affine_invariant_features/target.hpp>
 
 #include <opencv2/core.hpp>
 #include <opencv2/highgui.hpp>

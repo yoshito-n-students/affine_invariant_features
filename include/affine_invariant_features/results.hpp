@@ -1,5 +1,5 @@
-#ifndef AFFINE_INVARIANT_FEATURES_FEATURE_RESULTS
-#define AFFINE_INVARIANT_FEATURES_FEATURE_RESULTS
+#ifndef AFFINE_INVARIANT_FEATURES_RESULTS
+#define AFFINE_INVARIANT_FEATURES_RESULTS
 
 #include <vector>
 
@@ -19,12 +19,14 @@ public:
   virtual void read(const cv::FileNode &fn) {
     fn["keypoints"] >> keypoints;
     fn["descriptors"] >> descriptors;
+    fn["normType"] >> normType;
   }
 
   virtual void write(cv::FileStorage &fs) const {
     fs << "{";
     fs << "keypoints" << keypoints;
     fs << "descriptors" << descriptors;
+    fs << "normType" << normType;
     fs << "}";
   }
 
@@ -33,6 +35,7 @@ public:
 public:
   std::vector< cv::KeyPoint > keypoints;
   cv::Mat descriptors;
+  int normType; // cv::NormTypes
 };
 }
 
