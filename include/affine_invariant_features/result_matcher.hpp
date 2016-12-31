@@ -15,17 +15,11 @@ class ResultMatcher {
 public:
   ResultMatcher(const Results &train) : train_(train) {
     switch (train_.normType) {
-    case cv::NORM_L1:
-      matcher_ = cv::DescriptorMatcher::create("BruteForce-L1");
-      break;
     case cv::NORM_L2:
-      matcher_ = cv::DescriptorMatcher::create("FlannBased");
+      matcher_ = new cv::FlannBasedMatcher(new cv::flann::KDTreeIndexParams(4));
       break;
     case cv::NORM_HAMMING:
-      matcher_ = cv::DescriptorMatcher::create("BruteForce-Hamming");
-      break;
-    case cv::NORM_HAMMING2:
-      matcher_ = cv::DescriptorMatcher::create("BruteForce-Hamming2");
+      matcher_ = new cv::FlannBasedMatcher(new cv::flann::LshIndexParams(6, 12, 1));
       break;
     }
 
