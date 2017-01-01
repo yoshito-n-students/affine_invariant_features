@@ -9,18 +9,15 @@
 int main(int argc, char *argv[]) {
   namespace aif = affine_invariant_features;
 
-  const cv::CommandLineParser args(
-      argc, argv, "{ help | | }"
-                  "{ write-relative | <none> | write an image path with respect to the file path }"
-                  "{ @target-image | <none> | }"
-                  "{ @target-file | <none> | }");
+  const cv::CommandLineParser args(argc, argv, "{ help | | }"
+                                               "{ @target-image | <none> | }"
+                                               "{ @target-file | <none> | }");
 
   if (args.has("help")) {
     args.printMessage();
     return 0;
   }
 
-  const bool write_relative(args.has("write-relative"));
   const std::string image_path(args.get< std::string >("@target-image"));
   const std::string file_path(args.get< std::string >("@target-file"));
   if (!args.check()) {
@@ -36,9 +33,6 @@ int main(int argc, char *argv[]) {
 
   aif::TargetDescription target;
   target.imagePath = aif::TargetDescription::absolutePath(image_path);
-  if (write_relative) {
-    target.imagePath = aif::TargetDescription::relativePath(target.imagePath, file_path);
-  }
   target.imageMD5 = aif::TargetDescription::md5(image_path);
   target.contour.push_back(cv::Point(0, 0));
   target.contour.push_back(cv::Point(image.cols - 1, 0));

@@ -11,6 +11,10 @@ find_package(
 
 ## System dependencies are found with CMake's conventions
 find_package(
+  Boost REQUIRED COMPONENTS
+  filesystem
+  )
+find_package(
   OpenCV REQUIRED COMPONENTS 
   calib3d
   core
@@ -21,14 +25,6 @@ find_package(
   )
 find_package(
   OpenSSL REQUIRED
-  )
-find_package(
-  Qt4 REQUIRED 
-  QtCore
-  )
-set(
-  QT_LIBRARIES
-  ${QT_QTCORE_LIBRARY}
   )
 
 ## Uncomment this if the package has a setup.py. This macro ensures
@@ -133,9 +129,9 @@ catkin_package(
 include_directories(
   include
   ${catkin_INCLUDE_DIRS}
+  ${Boost_INCLUDE_DIRS}
   ${OpenCV_INCLUDE_DIRS}
   ${OPENSSL_INCLUDE_DIR}
-  ${QT_INCLUDES}
 )
 
 ## Declare a C++ library
@@ -174,30 +170,30 @@ add_executable(
 target_link_libraries(
   generate_parameter_file
   ${catkin_LIBRARIES}
+  ${Boost_LIBRARIES}
   ${OpenCV_LIBRARIES}
   ${OPENSSL_LIBRARIES}
-  ${QT_LIBRARIES}
   )
 target_link_libraries(
   generate_target_file
   ${catkin_LIBRARIES}
+  ${Boost_LIBRARIES}
   ${OpenCV_LIBRARIES}
   ${OPENSSL_LIBRARIES}
-  ${QT_LIBRARIES}
   )
 target_link_libraries(
   extract_features
   ${catkin_LIBRARIES}
+  ${Boost_LIBRARIES}
   ${OpenCV_LIBRARIES}
   ${OPENSSL_LIBRARIES}
-  ${QT_LIBRARIES}
   )
 target_link_libraries(
   match_features
   ${catkin_LIBRARIES}
+  ${Boost_LIBRARIES}
   ${OpenCV_LIBRARIES}
   ${OPENSSL_LIBRARIES}
-  ${QT_LIBRARIES}
   )
 
 #############

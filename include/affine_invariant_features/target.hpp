@@ -10,14 +10,13 @@
 
 #include <affine_invariant_features/cv_serializable.hpp>
 
+#include <boost/filesystem.hpp>
+
 #include <opencv2/core.hpp>
 #include <opencv2/highgui.hpp>
 #include <opencv2/imgproc.hpp>
 
 #include <openssl/md5.h>
-
-#include <QDir>
-#include <QFileInfo>
 
 namespace affine_invariant_features {
 
@@ -84,22 +83,9 @@ public:
   virtual std::string getDefaultName() const { return "TargetDescription"; }
 
 public:
-  // convert a relative path to an absolute path.
-  // the relative path is assumed to be respect with the base path.
-  // if the input path is absolute, ignore the base path and return a cleaned input path.
-  static std::string absolutePath(const std::string &path, const std::string &base = ".") {
-    const QFileInfo base_file(base.c_str());
-    const QDir base_dir(base_file.isDir() ? QDir(base.c_str()) : base_file.dir());
-    return QDir::cleanPath(base_dir.absoluteFilePath(path.c_str())).toStdString();
-  }
-
-  // convert an absolute path to a relative path.
-  // the relative path is assumed to be respect with the base path.
-  // if the input path is relative, ignore the base path and return a cleaned input path.
-  static std::string relativePath(const std::string &path, const std::string &base = ".") {
-    const QFileInfo base_file(base.c_str());
-    const QDir base_dir(base_file.isDir() ? QDir(base.c_str()) : base_file.dir());
-    return QDir::cleanPath(base_dir.relativeFilePath(path.c_str())).toStdString();
+  static std::string absolutePath(const std::string &path) {
+    namespace bf = boost::filesystem;
+    return (bf::exists(path) ? bf::canonical(path) : bf::absolute(path)).string();
   }
 
   static std::string md5(const std::string &path) {

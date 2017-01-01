@@ -92,11 +92,11 @@ int main(int argc, char *argv[]) {
   cv::Mat result_image;
   cv::drawKeypoints(target_image, results.keypoints, result_image);
   std::cout << "Showing a result image with keypoints. Press any key to continue." << std::endl;
-  cv::imshow("Resutls", result_image);
+  cv::imshow("Results", result_image);
   cv::waitKey(0);
 
   cv::FileStorage result_file(result_path, cv::FileStorage::WRITE);
-  if(!result_file.isOpened()){
+  if (!result_file.isOpened()) {
     std::cerr << "Could not open or create " << result_path << std::endl;
     return 1;
   }
