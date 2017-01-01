@@ -11,7 +11,7 @@ int main(int argc, char *argv[]) {
 
   const cv::CommandLineParser args(
       argc, argv, "{ help | | }"
-                  "{ write-relative | false | write an image path with respect to the file path }"
+                  "{ write-relative | <none> | write an image path with respect to the file path }"
                   "{ @target-image | <none> | }"
                   "{ @target-file | <none> | }");
 
@@ -20,7 +20,7 @@ int main(int argc, char *argv[]) {
     return 0;
   }
 
-  const bool write_relative(args.get< bool >("write-relative"));
+  const bool write_relative(args.has("write-relative"));
   const std::string image_path(args.get< std::string >("@target-image"));
   const std::string file_path(args.get< std::string >("@target-file"));
   if (!args.check()) {
@@ -35,12 +35,9 @@ int main(int argc, char *argv[]) {
   }
 
   aif::TargetDescription target;
+  target.imagePath = aif::TargetDescription::absolutePath(image_path);
   if (write_relative) {
-    // TODO: properly handle write_relative
-    // target.imagePath = aif::TargetDescription::relativePath(image_path, file_path);
-    target.imagePath = aif::TargetDescription::absolutePath(image_path);
-  } else {
-    target.imagePath = aif::TargetDescription::absolutePath(image_path);
+    target.imagePath = aif::TargetDescription::relativePath(target.imagePath, file_path);
   }
   target.imageMD5 = aif::TargetDescription::md5(image_path);
   target.contour.push_back(cv::Point(0, 0));
@@ -53,7 +50,7 @@ int main(int argc, char *argv[]) {
     std::cerr << "Could not open or create " << file_path << std::endl;
     return 1;
   }
-  
+
   file << target.getDefaultName() << target;
   std::cout << "Wrote a description of " << image_path << " to " << file_path << std::endl;
 
