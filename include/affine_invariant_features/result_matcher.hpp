@@ -86,8 +86,8 @@ public:
     }
   }
 
-  static void parallelMatch(const std::vector< ResultMatcher > &matchers, const Results &source,
-                            std::vector< cv::Matx33f > &transforms,
+  static void parallelMatch(const std::vector< cv::Ptr< ResultMatcher > > &matchers,
+                            const Results &source, std::vector< cv::Matx33f > &transforms,
                             std::vector< std::vector< cv::DMatch > > &matches_array) {
     // initiate output
     const int ntasks(matchers.size());
@@ -97,8 +97,10 @@ public:
     // populate tasks
     ParallelTasks tasks;
     for (int i = 0; i < ntasks; ++i) {
-      tasks.push_back(boost::bind(&ResultMatcher::match, &matchers[i], boost::ref(source),
-                                  boost::ref(transforms[i]), boost::ref(matches_array[i])));
+      if (matchers[i]) {
+        tasks.push_back(boost::bind(&ResultMatcher::match, matchers[i].get(), boost::ref(source),
+                                    boost::ref(transforms[i]), boost::ref(matches_array[i])));
+      }
     }
 
     // do paralell matching
