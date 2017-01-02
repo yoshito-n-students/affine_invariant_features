@@ -3,7 +3,11 @@
 
 #include <vector>
 
+#include <affine_invariant_features/parallel_tasks.hpp>
 #include <affine_invariant_features/results.hpp>
+
+#include <boost/bind.hpp>
+#include <boost/ref.hpp>
 
 #include <opencv2/calib3d.hpp>
 #include <opencv2/core.hpp>
@@ -13,8 +17,8 @@ namespace affine_invariant_features {
 
 class ResultMatcher {
 public:
-  ResultMatcher(const Results &train) : train_(train) {
-    switch (train_.normType) {
+  ResultMatcher(const Results &reference) : reference_(reference) {
+    switch (reference_.normType) {
     case cv::NORM_L2:
       matcher_ = new cv::FlannBasedMatcher(new cv::flann::KDTreeIndexParams(4));
       break;
@@ -25,21 +29,23 @@ public:
 
     CV_Assert(matcher_);
 
-    matcher_->add(train_.descriptors);
+    matcher_->add(reference_.descriptors);
     matcher_->train();
   }
 
   virtual ~ResultMatcher() {}
 
-  void match(const Results &query, cv::Matx33f &query2train,
+  const Results &getReference() const { return reference_; }
+
+  void match(const Results &source, cv::Matx33f &transform,
              std::vector< cv::DMatch > &matches) const {
     // initiate outputs
-    query2train = cv::Matx33f::eye();
+    transform = cv::Matx33f::eye();
     matches.clear();
 
-    // find the 1st & 2nd matches for each query result
+    // find the 1st & 2nd matches for each descriptor in the source
     std::vector< std::vector< cv::DMatch > > all_matches;
-    matcher_->knnMatch(query.descriptors, all_matches, 2);
+    matcher_->knnMatch(source.descriptors, all_matches, 2);
 
     // filter unique matches whose 1st is enough better than 2nd
     std::vector< cv::DMatch > unique_matches;
@@ -58,17 +64,17 @@ public:
       return;
     }
 
-    // further filter matches compatible to a query-to-train registration
+    // further filter matches compatible to a registration
     std::vector< unsigned char > mask;
     {
-      std::vector< cv::Point2f > query_points;
-      std::vector< cv::Point2f > train_points;
+      std::vector< cv::Point2f > source_points;
+      std::vector< cv::Point2f > reference_points;
       for (std::vector< cv::DMatch >::const_iterator m = unique_matches.begin();
            m != unique_matches.end(); ++m) {
-        query_points.push_back(query.keypoints[m->queryIdx].pt);
-        train_points.push_back(train_.keypoints[m->trainIdx].pt);
+        source_points.push_back(source.keypoints[m->queryIdx].pt);
+        reference_points.push_back(reference_.keypoints[m->trainIdx].pt);
       }
-      query2train = cv::findHomography(query_points, train_points, cv::RANSAC, 5., mask);
+      transform = cv::findHomography(source_points, reference_points, cv::RANSAC, 5., mask);
     }
 
     // pack the final matches
@@ -80,8 +86,27 @@ public:
     }
   }
 
+  static void parallelMatch(const std::vector< ResultMatcher > &matchers, const Results &source,
+                            std::vector< cv::Matx33f > &transforms,
+                            std::vector< std::vector< cv::DMatch > > &matches_array) {
+    // initiate output
+    const int ntasks(matchers.size());
+    transforms.resize(ntasks);
+    matches_array.resize(ntasks);
+
+    // populate tasks
+    ParallelTasks tasks;
+    for (int i = 0; i < ntasks; ++i) {
+      tasks.push_back(boost::bind(&ResultMatcher::match, &matchers[i], boost::ref(source),
+                                  boost::ref(transforms[i]), boost::ref(matches_array[i])));
+    }
+
+    // do paralell matching
+    cv::parallel_for_(cv::Range(0, ntasks), tasks);
+  }
+
 private:
-  const Results train_;
+  const Results reference_;
   cv::Ptr< cv::DescriptorMatcher > matcher_;
 };
 }
