@@ -2,9 +2,9 @@
 #define AFFINE_INVARIANT_FEATURES_AFFINE_INVARIANT_FEATURE
 
 #include <affine_invariant_features/affine_invariant_feature_base.hpp>
+#include <affine_invariant_features/parallel_tasks.hpp>
 
 #include <boost/bind.hpp>
-#include <boost/function.hpp>
 #include <boost/ref.hpp>
 
 #include <opencv2/core.hpp>
@@ -18,20 +18,6 @@ namespace affine_invariant_features {
 //
 
 class AffineInvariantFeature : public AffineInvariantFeatureBase {
-private:
-  // parallel loop helper
-  struct ParallelLoopBody : public cv::ParallelLoopBody {
-    virtual void operator()(const cv::Range &range) const {
-      for (int i = range.start; i < range.end; ++i) {
-        if (tasks[i]) {
-          tasks[i]();
-        }
-      }
-    }
-
-    std::vector< boost::function< void() > > tasks;
-  };
-
 private:
   // the private constructor. users must use create() to instantiate an AffineInvariantFeature
   AffineInvariantFeature(const cv::Ptr< cv::Feature2D > base_feature)
@@ -77,16 +63,16 @@ public:
     // TODO: properly handle useProvidedKeypoints
 
     // bind each parallel task and arguments
-    ParallelLoopBody body;
+    ParallelTasks tasks;
     for (int i = 0; i < ntasks; ++i) {
-      body.tasks.push_back(boost::bind(
-          &AffineInvariantFeature::detectAndComputeImpl, this, boost::ref(image_mat),
-          boost::ref(mask_mat), boost::ref(keypoints_array[i]), boost::ref(descriptors_array[i]),
-          tilt_params[i], phi_params[i], useProvidedKeypoints));
+      tasks.push_back(boost::bind(&AffineInvariantFeature::detectAndComputeImpl, this,
+                                  boost::ref(image_mat), boost::ref(mask_mat),
+                                  boost::ref(keypoints_array[i]), boost::ref(descriptors_array[i]),
+                                  tilt_params[i], phi_params[i], useProvidedKeypoints));
     }
 
     // do parallel tasks
-    cv::parallel_for_(cv::Range(0, ntasks), body);
+    cv::parallel_for_(cv::Range(0, ntasks), tasks);
 
     // extend keypoints
     keypoints.clear();
