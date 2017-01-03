@@ -91,15 +91,15 @@ public:
                             std::vector< std::vector< cv::DMatch > > &matches_array) {
     // initiate output
     const int ntasks(matchers.size());
-    transforms.resize(ntasks);
+    transforms.resize(ntasks, cv::Matx33f::eye());
     matches_array.resize(ntasks);
 
     // populate tasks
-    ParallelTasks tasks;
+    ParallelTasks tasks(ntasks);
     for (int i = 0; i < ntasks; ++i) {
       if (matchers[i]) {
-        tasks.push_back(boost::bind(&ResultMatcher::match, matchers[i].get(), boost::ref(source),
-                                    boost::ref(transforms[i]), boost::ref(matches_array[i])));
+        tasks[i] = boost::bind(&ResultMatcher::match, matchers[i].get(), boost::ref(source),
+                               boost::ref(transforms[i]), boost::ref(matches_array[i]));
       }
     }
 

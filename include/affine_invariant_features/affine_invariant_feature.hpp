@@ -1,6 +1,9 @@
 #ifndef AFFINE_INVARIANT_FEATURES_AFFINE_INVARIANT_FEATURE
 #define AFFINE_INVARIANT_FEATURES_AFFINE_INVARIANT_FEATURE
 
+#include <algorithm>
+#include <vector>
+
 #include <affine_invariant_features/affine_invariant_feature_base.hpp>
 #include <affine_invariant_features/parallel_tasks.hpp>
 
@@ -60,15 +63,17 @@ public:
     const int ntasks(tilt_params.size());
     std::vector< std::vector< cv::KeyPoint > > keypoints_array(ntasks);
     std::vector< cv::Mat > descriptors_array(ntasks);
-    // TODO: properly handle useProvidedKeypoints
+    if (useProvidedKeypoints) {
+      std::fill(keypoints_array.begin(), keypoints_array.end(), keypoints);
+    }
 
     // bind each parallel task and arguments
-    ParallelTasks tasks;
+    ParallelTasks tasks(ntasks);
     for (int i = 0; i < ntasks; ++i) {
-      tasks.push_back(boost::bind(&AffineInvariantFeature::detectAndComputeImpl, this,
-                                  boost::ref(image_mat), boost::ref(mask_mat),
-                                  boost::ref(keypoints_array[i]), boost::ref(descriptors_array[i]),
-                                  tilt_params[i], phi_params[i], useProvidedKeypoints));
+      tasks[i] = boost::bind(&AffineInvariantFeature::detectAndComputeTask, this,
+                             boost::ref(image_mat), boost::ref(mask_mat),
+                             boost::ref(keypoints_array[i]), boost::ref(descriptors_array[i]),
+                             tilt_params[i], phi_params[i], useProvidedKeypoints);
     }
 
     // do parallel tasks
@@ -96,7 +101,7 @@ public:
   virtual cv::String getDefaultName() const { return "AffineInvariantFeature"; }
 
 private:
-  void detectAndComputeImpl(const cv::Mat &src_image, const cv::Mat &src_mask,
+  void detectAndComputeTask(const cv::Mat &src_image, const cv::Mat &src_mask,
                             std::vector< cv::KeyPoint > &keypoints, cv::Mat &descriptors,
                             const double tilt, const double phi, const bool useProvidedKeypoints) {
     CV_Assert(base_feature_);
@@ -146,6 +151,17 @@ private:
       cv::warpAffine(mask, mask, affine, image.size(), cv::INTER_NEAREST);
     }
 
+    // apply the affine transformation to the provided keypoints if needed
+    if (useProvidedKeypoints) {
+      for (std::vector< cv::KeyPoint >::iterator keypoint = keypoints.begin();
+           keypoint != keypoints.end(); ++keypoint) {
+        // convert cv::Point2f to cv::Mat (1x1,2ch) without copying data.
+        // this is required because cv::transform does not accept cv::Point2f.
+        cv::Mat pt(cv::Mat(keypoint->pt, false).reshape(2));
+        cv::transform(pt, pt, affine);
+      }
+    }
+
     // detect features in the skewed image
     base_feature_->detectAndCompute(image, mask, keypoints, descriptors, useProvidedKeypoints);
 
@@ -154,8 +170,6 @@ private:
     cv::invertAffineTransform(affine, invert_affine);
     for (std::vector< cv::KeyPoint >::iterator keypoint = keypoints.begin();
          keypoint != keypoints.end(); ++keypoint) {
-      // convert cv::Point2f to cv::Mat (1x1,2ch) without copying data.
-      // this is required because cv::transform does not accept cv::Point2f.
       cv::Mat pt(cv::Mat(keypoint->pt, false).reshape(2));
       cv::transform(pt, pt, invert_affine);
     }
