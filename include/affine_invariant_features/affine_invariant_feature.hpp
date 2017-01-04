@@ -23,15 +23,24 @@ namespace affine_invariant_features {
 class AffineInvariantFeature : public AffineInvariantFeatureBase {
 private:
   // the private constructor. users must use create() to instantiate an AffineInvariantFeature
-  AffineInvariantFeature(const cv::Ptr< cv::Feature2D > base_feature)
-      : AffineInvariantFeatureBase(base_feature) {}
+  AffineInvariantFeature(const cv::Ptr< cv::Feature2D > detector,
+                         const cv::Ptr< cv::Feature2D > extractor)
+      : AffineInvariantFeatureBase(detector, extractor) {}
 
 public:
   virtual ~AffineInvariantFeature() {}
 
-  // the only function to instantiate an AffineInvariantFeature
-  static cv::Ptr< AffineInvariantFeature > create(const cv::Ptr< cv::Feature2D > base_feature) {
-    return new AffineInvariantFeature(base_feature);
+  //
+  // unique interfaces to instantiate an AffineInvariantFeature
+  //
+
+  static cv::Ptr< AffineInvariantFeature > create(const cv::Ptr< cv::Feature2D > feature) {
+    return new AffineInvariantFeature(feature, feature);
+  }
+
+  static cv::Ptr< AffineInvariantFeature > create(const cv::Ptr< cv::Feature2D > detector,
+                                                  const cv::Ptr< cv::Feature2D > extractor) {
+    return new AffineInvariantFeature(detector, extractor);
   }
 
   //
@@ -104,9 +113,7 @@ private:
   void detectAndComputeTask(const cv::Mat &src_image, const cv::Mat &src_mask,
                             std::vector< cv::KeyPoint > &keypoints, cv::Mat &descriptors,
                             const double tilt, const double phi, const bool useProvidedKeypoints) {
-    CV_Assert(base_feature_);
-
-    // affine transformation to be applied to the given image and mask
+    // affine transformation to be applied to the given image
     cv::Matx23f affine(cv::Matx23f::eye());
 
     // apply the affine transformation to the image on the basis of the given parameters
@@ -142,28 +149,44 @@ private:
       affine(0, 2) /= tilt;
     }
 
-    // apply the affine transformation to the mask
-    cv::Mat mask(src_mask.clone());
-    if (mask.empty()) {
-      mask = cv::Mat(src_image.size(), CV_8UC1, 255);
-    }
-    if (phi != 0. || tilt != 1.) {
-      cv::warpAffine(mask, mask, affine, image.size(), cv::INTER_NEAREST);
-    }
-
-    // apply the affine transformation to the provided keypoints if needed
+    // detect features in the skewed image
     if (useProvidedKeypoints) {
-      for (std::vector< cv::KeyPoint >::iterator keypoint = keypoints.begin();
-           keypoint != keypoints.end(); ++keypoint) {
-        // convert cv::Point2f to cv::Mat (1x1,2ch) without copying data.
-        // this is required because cv::transform does not accept cv::Point2f.
-        cv::Mat pt(cv::Mat(keypoint->pt, false).reshape(2));
-        cv::transform(pt, pt, affine);
+      // if keypoints are provided, first apply the affine transformation to them
+      if (phi != 0. || tilt != 1.) {
+        for (std::vector< cv::KeyPoint >::iterator keypoint = keypoints.begin();
+             keypoint != keypoints.end(); ++keypoint) {
+          // convert cv::Point2f to cv::Mat (1x1,2ch) without copying data.
+          // this is required because cv::transform does not accept cv::Point2f.
+          cv::Mat pt(cv::Mat(keypoint->pt, false).reshape(2));
+          cv::transform(pt, pt, affine);
+        }
+      }
+
+      // extract descriptors on the skewed image and keypoints
+      CV_Assert(extractor_);
+      extractor_->compute(image, keypoints, descriptors);
+    } else {
+      // if keypoints are not provided, first apply the affine transformation to the mask
+      cv::Mat mask(src_mask.clone());
+      if (mask.empty()) {
+        mask = cv::Mat(src_image.size(), CV_8UC1, 255);
+      }
+      if (phi != 0. || tilt != 1.) {
+        cv::warpAffine(mask, mask, affine, image.size(), cv::INTER_NEAREST);
+      }
+
+      // detect keypoints on the skewed image and mask
+      // and extract descriptors on the image and keypoints
+      if (detector_ == extractor_) {
+        CV_Assert(detector_);
+        detector_->detectAndCompute(image, mask, keypoints, descriptors, useProvidedKeypoints);
+      } else {
+        CV_Assert(detector_);
+        CV_Assert(extractor_);
+        detector_->detect(image, keypoints, mask);
+        extractor_->compute(image, keypoints, descriptors);
       }
     }
-
-    // detect features in the skewed image
-    base_feature_->detectAndCompute(image, mask, keypoints, descriptors, useProvidedKeypoints);
 
     // invert the positions of the detected keypoints
     cv::Matx23f invert_affine;

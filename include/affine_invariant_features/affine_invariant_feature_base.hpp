@@ -12,8 +12,9 @@ namespace affine_invariant_features {
 
 class AffineInvariantFeatureBase : public cv::Feature2D {
 protected:
-  AffineInvariantFeatureBase(const cv::Ptr< cv::Feature2D > base_feature)
-      : base_feature_(base_feature) {}
+  AffineInvariantFeatureBase(const cv::Ptr< cv::Feature2D > detector,
+                             const cv::Ptr< cv::Feature2D > extractor)
+      : detector_(detector), extractor_(extractor) {}
 
 public:
   virtual ~AffineInvariantFeatureBase() {}
@@ -27,47 +28,64 @@ public:
   //
 
   virtual int defaultNorm() const {
-    CV_Assert(base_feature_);
-    return base_feature_->defaultNorm();
+    CV_Assert(extractor_);
+    return extractor_->defaultNorm();
   }
 
   virtual int descriptorSize() const {
-    CV_Assert(base_feature_);
-    return base_feature_->descriptorSize();
+    CV_Assert(extractor_);
+    return extractor_->descriptorSize();
   }
 
   virtual int descriptorType() const {
-    CV_Assert(base_feature_);
-    return base_feature_->descriptorType();
+    CV_Assert(extractor_);
+    return extractor_->descriptorType();
   }
 
   virtual bool empty() const {
-    CV_Assert(base_feature_);
-    return base_feature_->empty();
+    // return true if both detector and extractor are empty
+    return (detector_ ? detector_->empty() : true) && (extractor_ ? extractor_->empty() : true);
   }
 
   virtual void read(const cv::FileNode &fn) {
-    CV_Assert(base_feature_);
-    base_feature_->read(fn);
+    if (detector_) {
+      detector_->read(fn);
+    }
+    if (extractor_ && extractor_ != detector_) {
+      extractor_->read(fn);
+    }
   }
 
   virtual void write(cv::FileStorage &fs) const {
-    CV_Assert(base_feature_);
-    base_feature_->write(fs);
+    if (detector_) {
+      detector_->write(fs);
+    }
+    if (extractor_ && extractor_ != detector_) {
+      extractor_->write(fs);
+    }
   }
 
   virtual void clear() {
-    CV_Assert(base_feature_);
-    base_feature_->clear();
+    if (detector_) {
+      detector_->clear();
+    }
+    if (extractor_ && extractor_ != detector_) {
+      extractor_->clear();
+    }
   }
 
   virtual void save(const cv::String &filename) const {
-    CV_Assert(base_feature_);
-    base_feature_->save(filename);
+    if (detector_) {
+      detector_->save(filename);
+    }
+    if (extractor_ && extractor_ != detector_) {
+      extractor_->save(filename);
+    }
   }
 
 protected:
-  const cv::Ptr< cv::Feature2D > base_feature_;
+  const cv::Ptr< cv::Feature2D > detector_;
+  const cv::Ptr< cv::Feature2D > extractor_;
 };
 }
 #endif
