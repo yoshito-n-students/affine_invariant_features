@@ -21,7 +21,7 @@ namespace affine_invariant_features {
 //
 
 class AffineInvariantFeature : public AffineInvariantFeatureBase {
-private:
+protected:
   // the private constructor. users must use create() to instantiate an AffineInvariantFeature
   AffineInvariantFeature(const cv::Ptr< cv::Feature2D > detector,
                          const cv::Ptr< cv::Feature2D > extractor)
@@ -70,7 +70,7 @@ public:
 
     // bind each parallel task and arguments
     ParallelTasks tasks(ntasks_);
-    for (int i = 0; i < ntasks_; ++i) {
+    for (std::size_t i = 0; i < ntasks_; ++i) {
       tasks[i] = boost::bind(&AffineInvariantFeature::computeTask, this, boost::ref(image_mat),
                              boost::ref(keypoints_array[i]), boost::ref(descriptors_array[i]),
                              phi_params_[i], tilt_params_[i]);
@@ -108,7 +108,6 @@ public:
     extendKeypoints(keypoints_array, keypoints);
   }
 
-  // detect and compute affine invariant keypoints and descriptors
   virtual void detectAndCompute(cv::InputArray image, cv::InputArray mask,
                                 std::vector< cv::KeyPoint > &keypoints, cv::OutputArray descriptors,
                                 bool useProvidedKeypoints = false) {
@@ -145,7 +144,7 @@ public:
 
   virtual cv::String getDefaultName() const { return "AffineInvariantFeature"; }
 
-private:
+protected:
   void computeTask(const cv::Mat &src_image, std::vector< cv::KeyPoint > &keypoints,
                    cv::Mat &descriptors, const double phi, const double tilt) const {
     // apply the affine transformation to the image on the basis of the given parameters
@@ -186,7 +185,7 @@ private:
 
   void detectAndComputeTask(const cv::Mat &src_image, const cv::Mat &src_mask,
                             std::vector< cv::KeyPoint > &keypoints, cv::Mat &descriptors,
-                            const double phi, const double tilt) {
+                            const double phi, const double tilt) const {
     // apply the affine transformation to the image on the basis of the given parameters
     cv::Mat image(src_image.clone());
     cv::Matx23f affine;
@@ -303,7 +302,7 @@ private:
     }
   }
 
-private:
+protected:
   std::vector< double > phi_params_;
   std::vector< double > tilt_params_;
   std::size_t ntasks_;
