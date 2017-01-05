@@ -22,9 +22,8 @@ public:
   //
   // inherited functions from cv::Feature2D or its base class.
   // These just call corresponding one of the base feature.
-  // detectAndCompute() and  getDefaultName() are overloaded in AffineInvariantFeature.
-  // detect() and compute() are not overloaded
-  // because the default implementation calls detectAndCompute().
+  // detect(), compute(), detectAndCompute() and getDefaultName()
+  // are overloaded in AffineInvariantFeature.
   //
 
   virtual int defaultNorm() const {
@@ -43,8 +42,17 @@ public:
   }
 
   virtual bool empty() const {
-    // return true if both detector and extractor are empty
-    return (detector_ ? detector_->empty() : true) && (extractor_ ? extractor_->empty() : true);
+    if (detector_) {
+      if (!detector_->empty()) {
+        return false;
+      }
+    }
+    if (extractor_) {
+      if (!extractor_->empty()) {
+        return false;
+      }
+    }
+    return true;
   }
 
   virtual void read(const cv::FileNode &fn) {
