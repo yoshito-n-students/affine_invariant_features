@@ -111,7 +111,7 @@ public:
   virtual void detectAndCompute(cv::InputArray image, cv::InputArray mask,
                                 std::vector< cv::KeyPoint > &keypoints, cv::OutputArray descriptors,
                                 bool useProvidedKeypoints = false) {
-    // just compute descriptors if the keypoints is provided
+    // just compute descriptors if the keypoints are provided
     if (useProvidedKeypoints) {
       compute(image, keypoints, descriptors);
       return;
