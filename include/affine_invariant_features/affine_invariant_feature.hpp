@@ -161,9 +161,7 @@ private:
     extractor_->compute(image, keypoints, descriptors);
 
     // invert keypoints
-    cv::Matx23f invert_affine;
-    cv::invertAffineTransform(affine, invert_affine);
-    transformKeypoints(keypoints, invert_affine);
+    invertKeypoints(keypoints, affine);
   }
 
   void detectTask(const cv::Mat &src_image, const cv::Mat &src_mask,
@@ -183,9 +181,7 @@ private:
     detector_->detect(image, keypoints, mask);
 
     // invert keypoints
-    cv::Matx23f invert_affine;
-    cv::invertAffineTransform(affine, invert_affine);
-    transformKeypoints(keypoints, invert_affine);
+    invertKeypoints(keypoints, affine);
   }
 
   void detectAndComputeTask(const cv::Mat &src_image, const cv::Mat &src_mask,
@@ -213,9 +209,7 @@ private:
     }
 
     // invert the positions of the detected keypoints
-    cv::Matx23f invert_affine;
-    cv::invertAffineTransform(affine, invert_affine);
-    transformKeypoints(keypoints, invert_affine);
+    invertKeypoints(keypoints, affine);
   }
 
   static void warpImage(cv::Mat &image, cv::Matx23f &affine, const double phi, const double tilt) {
@@ -273,6 +267,15 @@ private:
       cv::Mat pt(cv::Mat(keypoint->pt, false).reshape(2));
       cv::transform(pt, pt, affine);
     }
+  }
+
+  static void invertKeypoints(std::vector< cv::KeyPoint > &keypoints, const cv::Matx23f &affine) {
+    if (affine == cv::Matx23f::eye()) {
+      return;
+    }
+    cv::Matx23f invert_affine;
+    cv::invertAffineTransform(affine, invert_affine);
+    transformKeypoints(keypoints, invert_affine);
   }
 
   static void extendKeypoints(const std::vector< std::vector< cv::KeyPoint > > &src,
