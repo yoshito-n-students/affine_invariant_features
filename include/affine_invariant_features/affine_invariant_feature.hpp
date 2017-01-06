@@ -24,8 +24,8 @@ class AffineInvariantFeature : public AffineInvariantFeatureBase {
 protected:
   // the private constructor. users must use create() to instantiate an AffineInvariantFeature
   AffineInvariantFeature(const cv::Ptr< cv::Feature2D > detector,
-                         const cv::Ptr< cv::Feature2D > extractor)
-      : AffineInvariantFeatureBase(detector, extractor) {
+                         const cv::Ptr< cv::Feature2D > extractor, const double nstripes)
+      : AffineInvariantFeatureBase(detector, extractor), nstripes_(nstripes) {
     // generate parameters for affine invariant sampling
     phi_params_.push_back(0.);
     tilt_params_.push_back(1.);
@@ -46,13 +46,15 @@ public:
   // unique interfaces to instantiate an AffineInvariantFeature
   //
 
-  static cv::Ptr< AffineInvariantFeature > create(const cv::Ptr< cv::Feature2D > feature) {
-    return new AffineInvariantFeature(feature, feature);
+  static cv::Ptr< AffineInvariantFeature > create(const cv::Ptr< cv::Feature2D > feature,
+                                                  const double nstripes = -1.) {
+    return new AffineInvariantFeature(feature, feature, nstripes);
   }
 
   static cv::Ptr< AffineInvariantFeature > create(const cv::Ptr< cv::Feature2D > detector,
-                                                  const cv::Ptr< cv::Feature2D > extractor) {
-    return new AffineInvariantFeature(detector, extractor);
+                                                  const cv::Ptr< cv::Feature2D > extractor,
+                                                  const double nstripes = -1.) {
+    return new AffineInvariantFeature(detector, extractor, nstripes);
   }
 
   //
@@ -77,7 +79,7 @@ public:
     }
 
     // do parallel tasks
-    cv::parallel_for_(cv::Range(0, ntasks_), tasks);
+    cv::parallel_for_(cv::Range(0, ntasks_), tasks, nstripes_);
 
     // fill the final outputs
     extendKeypoints(keypoints_array, keypoints);
@@ -102,7 +104,7 @@ public:
     }
 
     // do parallel tasks
-    cv::parallel_for_(cv::Range(0, ntasks_), tasks);
+    cv::parallel_for_(cv::Range(0, ntasks_), tasks, nstripes_);
 
     // fill the final output
     extendKeypoints(keypoints_array, keypoints);
@@ -135,7 +137,7 @@ public:
     }
 
     // do parallel tasks
-    cv::parallel_for_(cv::Range(0, ntasks_), tasks);
+    cv::parallel_for_(cv::Range(0, ntasks_), tasks, nstripes_);
 
     // fill the final outputs
     extendKeypoints(keypoints_array, keypoints);
@@ -306,6 +308,7 @@ protected:
   std::vector< double > phi_params_;
   std::vector< double > tilt_params_;
   std::size_t ntasks_;
+  const double nstripes_;
 };
 }
 

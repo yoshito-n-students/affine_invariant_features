@@ -88,7 +88,8 @@ public:
 
   static void parallelMatch(const std::vector< cv::Ptr< ResultMatcher > > &matchers,
                             const Results &source, std::vector< cv::Matx33f > &transforms,
-                            std::vector< std::vector< cv::DMatch > > &matches_array) {
+                            std::vector< std::vector< cv::DMatch > > &matches_array,
+                            const double nstripes = -1.) {
     // initiate output
     const int ntasks(matchers.size());
     transforms.resize(ntasks, cv::Matx33f::eye());
@@ -104,7 +105,7 @@ public:
     }
 
     // do paralell matching
-    cv::parallel_for_(cv::Range(0, ntasks), tasks);
+    cv::parallel_for_(cv::Range(0, ntasks), tasks, nstripes);
   }
 
 private:
