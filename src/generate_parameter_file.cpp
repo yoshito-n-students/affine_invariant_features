@@ -10,18 +10,17 @@ int main(int argc, char *argv[]) {
   namespace aif = affine_invariant_features;
 
   const cv::CommandLineParser args(
-      argc, argv,
-      "{ help | | }"
-      "{ @parameter-type | <none> | SIFTParameters, BRISKParameters, AKAZEParameters, ... }"
-      "{ @parameter-file | <none> | }");
+      argc, argv, "{ help | | }"
+                  "{ @type | <none> | SIFTParameters, BRISKParameters, AKAZEParameters, ... }"
+                  "{ @file | <none> | output file }");
 
   if (args.has("help")) {
     args.printMessage();
     return 0;
   }
 
-  const std::string type(args.get< std::string >("@parameter-type"));
-  const std::string path(args.get< std::string >("@parameter-file"));
+  const std::string type(args.get< std::string >("@type"));
+  const std::string path(args.get< std::string >("@file"));
   if (!args.check()) {
     args.printErrors();
     return 1;
@@ -38,7 +37,7 @@ int main(int argc, char *argv[]) {
     std::cerr << "Could not open or create " << path << std::endl;
     return 1;
   }
-  
+
   file << params->getDefaultName() << *params;
   std::cout << "Wrote a parameter set whose type is " << type << " to " << path << std::endl;
 
