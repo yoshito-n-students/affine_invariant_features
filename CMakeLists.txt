@@ -7,6 +7,7 @@ project(affine_invariant_features)
 find_package(
   catkin REQUIRED COMPONENTS
   roscpp
+  roslib
 )
 
 ## System dependencies are found with CMake's conventions
@@ -115,7 +116,7 @@ find_package(
 catkin_package(
   INCLUDE_DIRS include
 #  LIBRARIES affine_invariant_features
-  CATKIN_DEPENDS roscpp
+  CATKIN_DEPENDS roscpp roslib
 #  DEPENDS system_lib
 )
 

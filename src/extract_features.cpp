@@ -55,7 +55,7 @@ int main(int argc, char *argv[]) {
 
   aif::TargetDescription target_desc;
   target_file[target_desc.getDefaultName()] >> target_desc;
-  if (target_desc.imagePath.empty()) {
+  if (target_desc.path.empty()) {
     std::cerr << "Could not load an image path from " << target_path << std::endl;
     return 1;
   }

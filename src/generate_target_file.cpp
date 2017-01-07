@@ -11,32 +11,34 @@ int main(int argc, char *argv[]) {
 
   const cv::CommandLineParser args(
       argc, argv, "{ help | | }"
-                  "{ write-as-is | <none> | write an image path as is to the target file }"
-                  "{ @target-image | <none> | }"
-                  "{ @target-file | <none> | }");
+                  "{ @image | <none> | absolute, or relative to the current path or a ROS package }"
+                  "{ @file | <none> | output file describing the image }"
+                  "{ @package | | optional path of a ROS package where the image is }");
 
   if (args.has("help")) {
     args.printMessage();
     return 0;
   }
 
-  const bool write_as_is(args.has("write-as-is"));
-  const std::string image_path(args.get< std::string >("@target-image"));
-  const std::string file_path(args.get< std::string >("@target-file"));
+  const std::string image_path(args.get< std::string >("@image"));
+  const std::string file_path(args.get< std::string >("@file"));
+  const std::string package_name(args.get< std::string >("@package"));
   if (!args.check()) {
     args.printErrors();
     return 1;
   }
 
-  const cv::Mat image(cv::imread(image_path));
+  const std::string resolved_path(aif::TargetDescription::resolvePath(package_name, image_path));
+  const cv::Mat image(cv::imread(resolved_path));
   if (image.empty()) {
-    std::cerr << "No image file at " << image_path << std::endl;
+    std::cerr << "No image file at " << resolved_path << std::endl;
     return 1;
   }
 
   aif::TargetDescription target;
-  target.imagePath = write_as_is ? image_path : aif::TargetDescription::absolutePath(image_path);
-  target.imageMD5 = aif::TargetDescription::md5(image_path);
+  target.package = package_name;
+  target.path = image_path;
+  target.md5 = aif::TargetDescription::generateMD5(resolved_path);
   target.contour.push_back(cv::Point(0, 0));
   target.contour.push_back(cv::Point(image.cols - 1, 0));
   target.contour.push_back(cv::Point(image.cols - 1, image.rows - 1));
@@ -49,7 +51,7 @@ int main(int argc, char *argv[]) {
   }
 
   file << target.getDefaultName() << target;
-  std::cout << "Wrote a description of " << image_path << " to " << file_path << std::endl;
+  std::cout << "Wrote a description of " << resolved_path << " to " << file_path << std::endl;
 
   return 0;
 }

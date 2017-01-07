@@ -20,7 +20,7 @@ bool readEverything(const std::string &path, aif::TargetData &target_data, aif::
 
   aif::TargetDescription target_desc;
   file[target_desc.getDefaultName()] >> target_desc;
-  if (target_desc.imagePath.empty()) {
+  if (target_desc.path.empty()) {
     std::cerr << "Could not load an image path from " << path << std::endl;
     return false;
   }

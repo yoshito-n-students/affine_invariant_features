@@ -8,6 +8,8 @@
 #include <string>
 #include <vector>
 
+#include <ros/package.h>
+
 #include <affine_invariant_features/cv_serializable.hpp>
 
 #include <boost/filesystem.hpp>
@@ -35,14 +37,19 @@ public:
   TargetData toData(const bool check_md5 = false) const {
     TargetData data;
 
+    const std::string resolved_path(resolvePath(package, path));
+    if (resolved_path.empty()) {
+      return data;
+    }
+
     if (check_md5) {
-      const std::string actual_md5(md5(imagePath));
-      if (imageMD5 != actual_md5) {
+      const std::string actual_md5(generateMD5(resolved_path));
+      if (md5 != actual_md5) {
         return data;
       }
     }
 
-    data.image = cv::imread(imagePath);
+    data.image = cv::imread(resolved_path);
     if (data.image.empty()) {
       return data;
     }
@@ -56,8 +63,9 @@ public:
   }
 
   virtual void read(const cv::FileNode &fn) {
-    fn["imagePath"] >> imagePath;
-    fn["imageMD5"] >> imageMD5;
+    fn["package"] >> package;
+    fn["path"] >> path;
+    fn["md5"] >> md5;
     const cv::FileNode contour_node(fn["contour"]);
     const std::size_t contour_size(contour_node.isSeq() ? contour_node.size() : 0);
     contour.resize(contour_size);
@@ -68,8 +76,9 @@ public:
 
   virtual void write(cv::FileStorage &fs) const {
     fs << "{";
-    fs << "imagePath" << imagePath;
-    fs << "imageMD5" << imageMD5;
+    fs << "package" << package;
+    fs << "path" << path;
+    fs << "md5" << md5;
     fs << "contour";
     fs << "[:";
     for (std::vector< cv::Point >::const_iterator point = contour.begin(); point != contour.end();
@@ -83,13 +92,20 @@ public:
   virtual std::string getDefaultName() const { return "TargetDescription"; }
 
 public:
-  static std::string absolutePath(const std::string &path) {
+  static std::string resolvePath(const std::string &package, const std::string &path) {
     namespace bf = boost::filesystem;
-    return (bf::exists(path) ? bf::canonical(path) : bf::absolute(path)).string();
+    namespace rp = ros::package;
+
+    const bf::path root_path(rp::getPath(package));
+    const bf::path leaf_path(path);
+    if (root_path.empty() || leaf_path.empty() || leaf_path.is_absolute()) {
+      return leaf_path.string();
+    }
+    return (root_path / leaf_path).string();
   }
 
-  static std::string md5(const std::string &path) {
-    // open the given path as a binary file
+  static std::string generateMD5(const std::string &path) {
+    // open the resolved image path as a binary file
     std::ifstream ifs(path.c_str(), std::ios::binary);
     if (!ifs) {
       return std::string();
@@ -116,8 +132,9 @@ public:
   }
 
 public:
-  std::string imagePath;
-  std::string imageMD5;
+  std::string package;
+  std::string path;
+  std::string md5;
   std::vector< cv::Point > contour;
 };
 }
