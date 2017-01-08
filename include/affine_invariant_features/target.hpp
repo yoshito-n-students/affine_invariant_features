@@ -43,8 +43,7 @@ public:
     }
 
     if (check_md5) {
-      const std::string actual_md5(generateMD5(resolved_path));
-      if (md5 != actual_md5) {
+      if (md5.empty() || md5 != generateMD5(resolved_path)) {
         return data;
       }
     }
@@ -105,7 +104,7 @@ public:
   }
 
   static std::string generateMD5(const std::string &path) {
-    // open the resolved image path as a binary file
+    // open the file path as a binary file
     std::ifstream ifs(path.c_str(), std::ios::binary);
     if (!ifs) {
       return std::string();
@@ -122,6 +121,7 @@ public:
       }
       MD5_Final(md5, &ctx);
     }
+    
     // stringaze the MD5 hash
     std::ostringstream oss;
     for (int i = 0; i < MD5_DIGEST_LENGTH; ++i) {
