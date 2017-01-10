@@ -9,7 +9,7 @@ A c++ header-only implementation of an affine invariant feature sampling techniq
 ## Dependencies (and tested versions)
 * OpenCV (3.1.0)
 * Boost (1.58)
-* ROS (kinetic, only using catkin build system)
+* ROS (kinetic, only using filesystem and catkin build system)
 
 ## References
 * http://www.cmap.polytechnique.fr/~yu/research/ASIFT/demo.html
