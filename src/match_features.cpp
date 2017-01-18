@@ -9,35 +9,24 @@
 #include <opencv2/core.hpp>
 #include <opencv2/features2d.hpp>
 
+#include "aif_assert.hpp"
+
 namespace aif = affine_invariant_features;
 
-bool readEverything(const std::string &path, aif::TargetData &target_data, aif::Results &results) {
+void readEverything(const std::string &path, aif::TargetData &target_data, aif::Results &results) {
   const cv::FileStorage file(path, cv::FileStorage::READ);
-  if (!file.isOpened()) {
-    std::cerr << "Could not open " << path << std::endl;
-    return false;
-  }
+  AIF_Assert(file.isOpened(), "Could not open %s", path.c_str());
 
   aif::TargetDescription target_desc;
   file[target_desc.getDefaultName()] >> target_desc;
-  if (target_desc.path.empty()) {
-    std::cerr << "Could not load an image path from " << path << std::endl;
-    return false;
-  }
+  AIF_Assert(!target_desc.path.empty(), "Could not load an image path from %s", path.c_str());
 
   target_data = target_desc.toData();
-  if (target_data.image.empty()) {
-    std::cerr << "Could not load an image described in " << path << std::endl;
-    return false;
-  }
+  AIF_Assert(!target_data.image.empty(), "Could not load an image described in %s", path.c_str());
 
   file[results.getDefaultName()] >> results;
-  if (results.keypoints.empty() || results.descriptors.empty()) {
-    std::cerr << "Could not load extracted features from " << path << std::endl;
-    return false;
-  }
-
-  return true;
+  AIF_Assert(!results.keypoints.empty() && !results.descriptors.empty(),
+             "Could not load extracted features from %s", path.c_str());
 }
 
 cv::Mat shadeImage(const cv::Mat &src, const cv::Mat &mask) {
@@ -74,17 +63,13 @@ int main(int argc, char *argv[]) {
 
   aif::TargetData target1;
   aif::Results results1;
-  if (!readEverything(feature_path1, target1, results1)) {
-    return 1;
-  }
+  readEverything(feature_path1, target1, results1);
   std::cout << "loaded " << results1.keypoints.size() << " feature points from " << feature_path1
             << std::endl;
 
   aif::TargetData target2;
   aif::Results results2;
-  if (!readEverything(feature_path2, target2, results2)) {
-    return 1;
-  }
+  readEverything(feature_path2, target2, results2);
   std::cout << "loaded " << results2.keypoints.size() << " feature points from " << feature_path2
             << std::endl;
 

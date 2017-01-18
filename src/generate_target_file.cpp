@@ -6,6 +6,8 @@
 #include <opencv2/core.hpp>
 #include <opencv2/highgui.hpp>
 
+#include "aif_assert.hpp"
+
 int main(int argc, char *argv[]) {
   namespace aif = affine_invariant_features;
 
@@ -30,10 +32,7 @@ int main(int argc, char *argv[]) {
 
   const std::string resolved_path(aif::TargetDescription::resolvePath(package_name, image_path));
   const cv::Mat image(cv::imread(resolved_path));
-  if (image.empty()) {
-    std::cerr << "No image file at " << resolved_path << std::endl;
-    return 1;
-  }
+  AIF_Assert(!image.empty(), "No image file at %s", resolved_path.c_str());
 
   aif::TargetDescription target;
   target.package = package_name;
@@ -45,10 +44,7 @@ int main(int argc, char *argv[]) {
   target.contour.push_back(cv::Point(0, image.rows - 1));
 
   cv::FileStorage file(file_path, cv::FileStorage::WRITE);
-  if (!file.isOpened()) {
-    std::cerr << "Could not open or create " << file_path << std::endl;
-    return 1;
-  }
+  AIF_Assert(file.isOpened(), "Could not open or create %s", file_path.c_str());
 
   file << target.getDefaultName() << target;
   std::cout << "Wrote a description of " << resolved_path << " to " << file_path << std::endl;
