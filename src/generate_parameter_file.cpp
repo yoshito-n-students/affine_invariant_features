@@ -5,6 +5,8 @@
 
 #include <opencv2/core.hpp>
 
+#include "aif_assert.hpp"
+
 int main(int argc, char *argv[]) {
 
   namespace aif = affine_invariant_features;
@@ -27,16 +29,10 @@ int main(int argc, char *argv[]) {
   }
 
   const cv::Ptr< const aif::FeatureParameters > params(aif::createFeatureParameters(type));
-  if (!params) {
-    std::cerr << "Could not create a parameter set whose type is " << type << std::endl;
-    return 1;
-  }
+  AIF_Assert(params, "Could not create a parameter set whose type is %s", type.c_str());
 
   cv::FileStorage file(path, cv::FileStorage::WRITE);
-  if (!file.isOpened()) {
-    std::cerr << "Could not open or create " << path << std::endl;
-    return 1;
-  }
+  AIF_Assert(file.isOpened(), "Could not open or create %s", path.c_str());
 
   file << params->getDefaultName() << *params;
   std::cout << "Wrote a parameter set whose type is " << type << " to " << path << std::endl;

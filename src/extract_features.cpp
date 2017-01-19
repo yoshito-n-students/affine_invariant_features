@@ -10,6 +10,8 @@
 #include <opencv2/features2d.hpp>
 #include <opencv2/highgui.hpp>
 
+#include "aif_assert.hpp"
+
 int main(int argc, char *argv[]) {
   namespace aif = affine_invariant_features;
 
@@ -35,36 +37,23 @@ int main(int argc, char *argv[]) {
   }
 
   const cv::FileStorage param_file(param_path, cv::FileStorage::READ);
-  if (!param_file.isOpened()) {
-    std::cerr << "Could not open " << param_path << std::endl;
-    return 1;
-  }
+  AIF_Assert(param_file.isOpened(), "Could not open %s", param_path.c_str());
 
   const cv::Ptr< const aif::FeatureParameters > params(
       aif::readFeatureParameters(param_file.root()));
-  if (!params) {
-    std::cerr << "Could not load a parameter set from " << param_path << std::endl;
-    return 1;
-  }
+  AIF_Assert(params, "Could not load a parameter set from %s", param_path.c_str());
 
   const cv::FileStorage target_file(target_path, cv::FileStorage::READ);
-  if (!target_file.isOpened()) {
-    std::cerr << "Could not open " << target_path << std::endl;
-    return 1;
-  }
+  AIF_Assert(target_file.isOpened(), "Could not open %s", target_path.c_str());
 
   aif::TargetDescription target_desc;
   target_file[target_desc.getDefaultName()] >> target_desc;
-  if (target_desc.path.empty()) {
-    std::cerr << "Could not load an image path from " << target_path << std::endl;
-    return 1;
-  }
+  AIF_Assert(!target_desc.path.empty(), "Could not load an image path from %s",
+             target_path.c_str());
 
   const aif::TargetData target_data(target_desc.toData());
-  if (target_data.image.empty()) {
-    std::cerr << "Could not load a target image described in " << target_path << std::endl;
-    return 1;
-  }
+  AIF_Assert(!target_data.image.empty(), "Could not load a target image described in %s",
+             target_path.c_str());
 
   cv::Mat target_image;
   if (target_data.mask.empty()) {
@@ -96,10 +85,7 @@ int main(int argc, char *argv[]) {
   cv::waitKey(0);
 
   cv::FileStorage result_file(result_path, cv::FileStorage::WRITE);
-  if (!result_file.isOpened()) {
-    std::cerr << "Could not open or create " << result_path << std::endl;
-    return 1;
-  }
+  AIF_Assert(result_file.isOpened(), "Could not open or create %s", result_path.c_str());
 
   result_file << params->getDefaultName() << *params;
   result_file << target_desc.getDefaultName() << target_desc;

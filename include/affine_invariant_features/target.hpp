@@ -95,7 +95,7 @@ public:
     namespace bf = boost::filesystem;
     namespace rp = ros::package;
 
-    const bf::path root_path(rp::getPath(package));
+    const bf::path root_path(package.empty() ? std::string() : rp::getPath(package));
     const bf::path leaf_path(path);
     if (root_path.empty() || leaf_path.empty() || leaf_path.is_absolute()) {
       return leaf_path.string();
@@ -121,7 +121,7 @@ public:
       }
       MD5_Final(md5, &ctx);
     }
-    
+
     // stringaze the MD5 hash
     std::ostringstream oss;
     for (int i = 0; i < MD5_DIGEST_LENGTH; ++i) {
