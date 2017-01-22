@@ -40,28 +40,21 @@ int main(int argc, char *argv[]) {
   AIF_Assert(param_file.isOpened(), "Could not open %s", param_path.c_str());
 
   const cv::Ptr< const aif::FeatureParameters > params(
-      aif::readFeatureParameters(param_file.root()));
+      aif::load< aif::FeatureParameters >(param_file.root()));
   AIF_Assert(params, "Could not load a parameter set from %s", param_path.c_str());
 
   const cv::FileStorage target_file(target_path, cv::FileStorage::READ);
   AIF_Assert(target_file.isOpened(), "Could not open %s", target_path.c_str());
 
-  aif::TargetDescription target_desc;
-  target_file[target_desc.getDefaultName()] >> target_desc;
-  AIF_Assert(!target_desc.path.empty(), "Could not load an image path from %s",
-             target_path.c_str());
+  const cv::Ptr< const aif::TargetDescription > target_desc(
+      aif::load< aif::TargetDescription >(target_file.root()));
+  AIF_Assert(target_desc, "Could not load an target description from %s", target_path.c_str());
 
-  const aif::TargetData target_data(target_desc.toData());
-  AIF_Assert(!target_data.image.empty(), "Could not load a target image described in %s",
-             target_path.c_str());
+  const cv::Ptr< const aif::TargetData > target_data(aif::TargetData::retrieve(*target_desc));
+  AIF_Assert(target_data, "Could not load target data described in %s", target_path.c_str());
 
-  cv::Mat target_image;
-  if (target_data.mask.empty()) {
-    target_image = target_data.image.clone();
-  } else {
-    target_image = target_data.image / 4;
-    target_data.image.copyTo(target_image, target_data.mask);
-  }
+  cv::Mat target_image(target_data->image / 4);
+  target_data->image.copyTo(target_image, target_data->mask);
   std::cout << "Showing the target image with mask. Press any key to continue." << std::endl;
   cv::imshow("Target", target_image);
   cv::waitKey(0);
@@ -74,7 +67,7 @@ int main(int argc, char *argv[]) {
     feature = aif::AffineInvariantFeature::create(params->createFeature());
   }
   aif::Results results;
-  feature->detectAndCompute(target_data.image, target_data.mask, results.keypoints,
+  feature->detectAndCompute(target_data->image, target_data->mask, results.keypoints,
                             results.descriptors);
   results.normType = feature->defaultNorm();
 
@@ -87,9 +80,9 @@ int main(int argc, char *argv[]) {
   cv::FileStorage result_file(result_path, cv::FileStorage::WRITE);
   AIF_Assert(result_file.isOpened(), "Could not open or create %s", result_path.c_str());
 
-  result_file << params->getDefaultName() << *params;
-  result_file << target_desc.getDefaultName() << target_desc;
-  result_file << results.getDefaultName() << results;
+  params->save(result_file);
+  target_desc->save(result_file);
+  results.save(result_file);
   std::cout << "Wrote context and results of feature extraction to " << result_path << std::endl;
 
   return 0;

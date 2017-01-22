@@ -1,7 +1,6 @@
 #ifndef AFFINE_INVARIANT_FEATURES_TARGET
 #define AFFINE_INVARIANT_FEATURES_TARGET
 
-#include <algorithm>
 #include <fstream>
 #include <iomanip>
 #include <sstream>
@@ -22,44 +21,11 @@
 
 namespace affine_invariant_features {
 
-struct TargetData {
-public:
-  cv::Mat image;
-  cv::Mat mask;
-};
-
 struct TargetDescription : public CvSerializable {
 public:
   TargetDescription() {}
 
   virtual ~TargetDescription() {}
-
-  TargetData toData(const bool check_md5 = false) const {
-    TargetData data;
-
-    const std::string resolved_path(resolvePath(package, path));
-    if (resolved_path.empty()) {
-      return data;
-    }
-
-    if (check_md5) {
-      if (md5.empty() || md5 != generateMD5(resolved_path)) {
-        return data;
-      }
-    }
-
-    data.image = cv::imread(resolved_path);
-    if (data.image.empty()) {
-      return data;
-    }
-
-    if (!contour.empty()) {
-      data.mask = cv::Mat::zeros(data.image.size(), CV_8UC1);
-      cv::fillPoly(data.mask, std::vector< std::vector< cv::Point > >(1, contour), 255);
-    }
-
-    return data;
-  }
 
   virtual void read(const cv::FileNode &fn) {
     fn["package"] >> package;
@@ -74,7 +40,6 @@ public:
   }
 
   virtual void write(cv::FileStorage &fs) const {
-    fs << "{";
     fs << "package" << package;
     fs << "path" << path;
     fs << "md5" << md5;
@@ -85,7 +50,6 @@ public:
       fs << *point;
     }
     fs << "]";
-    fs << "}";
   }
 
   virtual std::string getDefaultName() const { return "TargetDescription"; }
@@ -137,6 +101,61 @@ public:
   std::string md5;
   std::vector< cv::Point > contour;
 };
+
+struct TargetData : public CvSerializable {
+public:
+  TargetData() {}
+
+  virtual ~TargetData() {}
+
+  virtual void read(const cv::FileNode &fn) {
+    TargetDescription desc;
+    desc.read(fn);
+
+    const cv::Ptr< const TargetData > data(retrieve(desc));
+    *this = data ? *data : TargetData();
+  }
+
+  virtual void write(cv::FileStorage &fs) const { CV_Error(cv::Error::StsNotImplemented, ""); }
+
+  virtual std::string getDefaultName() const { return "TargetData"; }
+
+public:
+  static cv::Ptr< TargetData > retrieve(const TargetDescription &desc,
+                                        const bool check_md5 = false) {
+    const std::string path(TargetDescription::resolvePath(desc.package, desc.path));
+    if (path.empty()) {
+      return cv::Ptr< TargetData >();
+    }
+
+    if (check_md5) {
+      if (desc.md5.empty() || desc.md5 != TargetDescription::generateMD5(path)) {
+        return cv::Ptr< TargetData >();
+      }
+    }
+
+    const cv::Ptr< TargetData > data(new TargetData());
+    data->image = cv::imread(path);
+    if (data->image.empty()) {
+      return cv::Ptr< TargetData >();
+    }
+
+    if (!desc.contour.empty()) {
+      data->mask = cv::Mat::zeros(data->image.size(), CV_8UC1);
+      cv::fillPoly(data->mask, std::vector< std::vector< cv::Point > >(1, desc.contour), 255);
+    }
+    return data;
+  }
+
+public:
+  cv::Mat image;
+  cv::Mat mask;
+};
+
+template <> cv::Ptr< TargetData > load< TargetData >(const cv::FileNode &fn) {
+  const cv::Ptr< const TargetDescription > desc(load< TargetDescription >(fn));
+  return desc ? TargetData::retrieve(*desc) : cv::Ptr< TargetData >();
+}
 }
 
 #endif

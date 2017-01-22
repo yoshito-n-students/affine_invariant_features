@@ -46,7 +46,7 @@ int main(int argc, char *argv[]) {
   cv::FileStorage file(file_path, cv::FileStorage::WRITE);
   AIF_Assert(file.isOpened(), "Could not open or create %s", file_path.c_str());
 
-  file << target.getDefaultName() << target;
+  target.save(file);
   std::cout << "Wrote a description of " << resolved_path << " to " << file_path << std::endl;
 
   return 0;

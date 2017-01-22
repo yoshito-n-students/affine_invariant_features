@@ -1,6 +1,7 @@
 #ifndef AFFINE_INVARIANT_FEATURES_RESULTS
 #define AFFINE_INVARIANT_FEATURES_RESULTS
 
+#include <string>
 #include <vector>
 
 #include <affine_invariant_features/cv_serializable.hpp>
@@ -23,11 +24,9 @@ public:
   }
 
   virtual void write(cv::FileStorage &fs) const {
-    fs << "{";
     fs << "keypoints" << keypoints;
     fs << "descriptors" << descriptors;
     fs << "normType" << normType;
-    fs << "}";
   }
 
   virtual std::string getDefaultName() const { return "Results"; }

@@ -17,8 +17,10 @@ namespace affine_invariant_features {
 
 class ResultMatcher {
 public:
-  ResultMatcher(const Results &reference) : reference_(reference) {
-    switch (reference_.normType) {
+  ResultMatcher(const cv::Ptr< const Results > &reference) : reference_(reference) {
+    CV_Assert(reference_);
+
+    switch (reference_->normType) {
     case cv::NORM_L2:
       matcher_ = new cv::FlannBasedMatcher(new cv::flann::KDTreeIndexParams(4));
       break;
@@ -29,13 +31,13 @@ public:
 
     CV_Assert(matcher_);
 
-    matcher_->add(reference_.descriptors);
+    matcher_->add(reference_->descriptors);
     matcher_->train();
   }
 
   virtual ~ResultMatcher() {}
 
-  const Results &getReference() const { return reference_; }
+  const Results &getReference() const { return *reference_; }
 
   void match(const Results &source, cv::Matx33f &transform,
              std::vector< cv::DMatch > &matches) const {
@@ -72,7 +74,7 @@ public:
       for (std::vector< cv::DMatch >::const_iterator m = unique_matches.begin();
            m != unique_matches.end(); ++m) {
         source_points.push_back(source.keypoints[m->queryIdx].pt);
-        reference_points.push_back(reference_.keypoints[m->trainIdx].pt);
+        reference_points.push_back(reference_->keypoints[m->trainIdx].pt);
       }
       transform = cv::findHomography(source_points, reference_points, cv::RANSAC, 5., mask);
     }
@@ -86,7 +88,7 @@ public:
     }
   }
 
-  static void parallelMatch(const std::vector< cv::Ptr< ResultMatcher > > &matchers,
+  static void parallelMatch(const std::vector< cv::Ptr< const ResultMatcher > > &matchers,
                             const Results &source, std::vector< cv::Matx33f > &transforms,
                             std::vector< std::vector< cv::DMatch > > &matches_array,
                             const double nstripes = -1.) {
@@ -109,7 +111,7 @@ public:
   }
 
 private:
-  const Results reference_;
+  const cv::Ptr< const Results > reference_;
   cv::Ptr< cv::DescriptorMatcher > matcher_;
 };
 }

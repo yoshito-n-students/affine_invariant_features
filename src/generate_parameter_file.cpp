@@ -34,7 +34,7 @@ int main(int argc, char *argv[]) {
   cv::FileStorage file(path, cv::FileStorage::WRITE);
   AIF_Assert(file.isOpened(), "Could not open or create %s", path.c_str());
 
-  file << params->getDefaultName() << *params;
+  params->save(file);
   std::cout << "Wrote a parameter set whose type is " << type << " to " << path << std::endl;
 
   return 0;

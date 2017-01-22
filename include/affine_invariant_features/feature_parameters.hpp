@@ -1,8 +1,11 @@
 #ifndef AFFINE_INVARIANT_FEATURES_FEATURE_PARAMETERS
 #define AFFINE_INVARIANT_FEATURES_FEATURE_PARAMETERS
 
+#include <string>
+
 #include <affine_invariant_features/cv_serializable.hpp>
 
+#include <opencv2/core.hpp>
 #include <opencv2/features2d.hpp>
 #include <opencv2/xfeatures2d.hpp>
 
@@ -48,13 +51,11 @@ public:
   }
 
   virtual void write(cv::FileStorage &fs) const {
-    fs << "{";
     fs << "nfeatures" << nfeatures;
     fs << "nOctaveLayers" << nOctaveLayers;
     fs << "contrastThreshold" << contrastThreshold;
     fs << "edgeThreshold" << edgeThreshold;
     fs << "sigma" << sigma;
-    fs << "}";
   }
 
   virtual std::string getDefaultName() const { return "SIFTParameters"; }
@@ -99,7 +100,6 @@ public:
   }
 
   virtual void write(cv::FileStorage &fs) const {
-    fs << "{";
     fs << "descriptorType" << descriptorType;
     fs << "descriptorSize" << descriptorSize;
     fs << "descriptorChannels" << descriptorChannels;
@@ -107,7 +107,6 @@ public:
     fs << "nOctaves" << nOctaves;
     fs << "nOctaveLayers" << nOctaveLayers;
     fs << "diffusivity" << diffusivity;
-    fs << "}";
   }
 
   virtual std::string getDefaultName() const { return "AKAZEParameters"; }
@@ -151,11 +150,9 @@ public:
   }
 
   virtual void write(cv::FileStorage &fs) const {
-    fs << "{";
     fs << "threshold" << threshold;
     fs << "nOctaves" << nOctaves;
     fs << "patternScale" << patternScale;
-    fs << "}";
   }
 
   virtual std::string getDefaultName() const { return "BRISKParameters"; }
@@ -171,12 +168,12 @@ public:
 //
 
 #define AIF_RETURN_IF_CREATE(type)                                                                 \
-  {                                                                                                \
+  do {                                                                                             \
     const cv::Ptr< type > params(new type());                                                      \
     if (type_name == params->getDefaultName()) {                                                   \
       return params;                                                                               \
     }                                                                                              \
-  }
+  } while (false)
 
 static inline cv::Ptr< FeatureParameters > createFeatureParameters(const std::string &type_name) {
   AIF_RETURN_IF_CREATE(AKAZEParameters);
@@ -185,20 +182,18 @@ static inline cv::Ptr< FeatureParameters > createFeatureParameters(const std::st
   return cv::Ptr< FeatureParameters >();
 }
 
-#define AIF_RETURN_IF_READ(type)                                                                   \
-  {                                                                                                \
-    const cv::Ptr< type > params(new type());                                                      \
-    const cv::FileNode param_node(fn[params->getDefaultName()]);                                   \
-    if (!param_node.empty()) {                                                                     \
-      param_node >> *params;                                                                       \
+#define AIF_RETURN_IF_LOAD(type)                                                                   \
+  do {                                                                                             \
+    const cv::Ptr< type > params(load< type >(fn));                                                \
+    if (params) {                                                                                  \
       return params;                                                                               \
     }                                                                                              \
-  }
+  } while (false)
 
-static inline cv::Ptr< FeatureParameters > readFeatureParameters(const cv::FileNode &fn) {
-  AIF_RETURN_IF_READ(AKAZEParameters);
-  AIF_RETURN_IF_READ(BRISKParameters);
-  AIF_RETURN_IF_READ(SIFTParameters);
+template <> cv::Ptr< FeatureParameters > load< FeatureParameters >(const cv::FileNode &fn) {
+  AIF_RETURN_IF_LOAD(AKAZEParameters);
+  AIF_RETURN_IF_LOAD(BRISKParameters);
+  AIF_RETURN_IF_LOAD(SIFTParameters);
   return cv::Ptr< FeatureParameters >();
 }
 }
