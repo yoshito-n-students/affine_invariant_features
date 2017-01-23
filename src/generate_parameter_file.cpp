@@ -13,8 +13,10 @@ int main(int argc, char *argv[]) {
 
   const cv::CommandLineParser args(
       argc, argv, "{ help | | }"
-                  "{ @type | <none> | SIFTParameters, BRISKParameters, AKAZEParameters, ... }"
-                  "{ @file | <none> | output file }");
+                  "{ non-aif | | generate non affine invariant feature parameters }"
+                  "{ @type | <none> | type of first parameter set }"
+                  "{ @file | <none> | output file }"
+                  "{ @type2 | | type of second parameter set (optional) }");
 
   if (args.has("help")) {
     args.printMessage();
@@ -22,20 +24,37 @@ int main(int argc, char *argv[]) {
   }
 
   const std::string type(args.get< std::string >("@type"));
+  const std::string type2(args.get< std::string >("@type2"));
   const std::string path(args.get< std::string >("@file"));
+  const bool non_aif(args.has("non-aif"));
   if (!args.check()) {
     args.printErrors();
     return 1;
   }
 
-  const cv::Ptr< const aif::FeatureParameters > params(aif::createFeatureParameters(type));
-  AIF_Assert(params, "Could not create a parameter set whose type is %s", type.c_str());
+  aif::AIFParameters params;
+
+  params.push_back(aif::createFeatureParameters(type));
+  AIF_Assert(params.back(), "Could not create the first parameter set whose type is %s",
+             type.c_str());
+
+  if (!type2.empty()) {
+    params.push_back(aif::createFeatureParameters(type2));
+    AIF_Assert(params.back(), "Could not create the second parameter set whose type is %s",
+               type2.c_str());
+  }
 
   cv::FileStorage file(path, cv::FileStorage::WRITE);
   AIF_Assert(file.isOpened(), "Could not open or create %s", path.c_str());
 
-  params->save(file);
-  std::cout << "Wrote a parameter set whose type is " << type << " to " << path << std::endl;
+  if (non_aif) {
+    params[0]->save(file);
+    std::cout << "Wrote a parameter set whose type is " << type << " to " << path << std::endl;
+  } else {
+    params.save(file);
+    std::cout << "Wrote a parameter set whose type is " << params.getDefaultName() << " to " << path
+              << std::endl;
+  }
 
   return 0;
 }
