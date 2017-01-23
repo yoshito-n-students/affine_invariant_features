@@ -54,13 +54,11 @@ int main(int argc, char *argv[]) {
   const cv::Ptr< const aif::TargetData > target_data(aif::TargetData::retrieve(*target_desc));
   AIF_Assert(target_data, "Could not load target data described in %s", target_path.c_str());
 
-  {
-    cv::Mat target_image(target_data->image / 4);
-    target_data->image.copyTo(target_image, target_data->mask);
-    std::cout << "Showing the target image with mask. Press any key to continue." << std::endl;
-    cv::imshow("Target", target_image);
-    cv::waitKey(0);
-  }
+  cv::Mat target_image(target_data->image / 4);
+  target_data->image.copyTo(target_image, target_data->mask);
+  std::cout << "Showing the target image with mask. Press any key to continue." << std::endl;
+  cv::imshow("Target", target_image);
+  cv::waitKey(0);
 
   std::cout << "Extracting features. This may take seconds or minutes." << std::endl;
   aif::Results results;
@@ -68,13 +66,11 @@ int main(int argc, char *argv[]) {
                             results.descriptors);
   results.normType = feature->defaultNorm();
 
-  {
-    cv::Mat result_image;
-    cv::drawKeypoints(target_image, results.keypoints, result_image);
-    std::cout << "Showing a result image with keypoints. Press any key to continue." << std::endl;
-    cv::imshow("Results", result_image);
-    cv::waitKey(0);
-  }
+  cv::Mat result_image;
+  cv::drawKeypoints(target_image, results.keypoints, result_image);
+  std::cout << "Showing a result image with keypoints. Press any key to continue." << std::endl;
+  cv::imshow("Results", result_image);
+  cv::waitKey(0);
 
   cv::FileStorage result_file(result_path, cv::FileStorage::WRITE);
   AIF_Assert(result_file.isOpened(), "Could not open or create %s", result_path.c_str());
