@@ -3,6 +3,7 @@
 
 #include <string>
 
+#include <affine_invariant_features/affine_invariant_feature.hpp>
 #include <affine_invariant_features/cv_serializable.hpp>
 
 #include <opencv2/core.hpp>
@@ -22,6 +23,62 @@ public:
   virtual ~FeatureParameters() {}
 
   virtual cv::Ptr< cv::Feature2D > createFeature() const = 0;
+};
+
+//
+// Affine invariant sampled feature
+//
+
+static cv::Ptr< FeatureParameters > createFeatureParameters(const std::string &);
+
+struct AIFParameters : public std::vector< cv::Ptr< FeatureParameters > >,
+                       public FeatureParameters {
+public:
+  AIFParameters() {}
+
+  virtual ~AIFParameters() {}
+
+  virtual cv::Ptr< cv::Feature2D > createFeature() const {
+    switch (size()) {
+    case 0:
+      return cv::Ptr< cv::Feature2D >();
+    case 1:
+      return AffineInvariantFeature::create(at(0) ? at(0)->createFeature()
+                                                  : cv::Ptr< cv::Feature2D >());
+    default:
+      return AffineInvariantFeature::create(
+          at(0) ? at(0)->createFeature() : cv::Ptr< cv::Feature2D >(),
+          at(1) ? at(1)->createFeature() : cv::Ptr< cv::Feature2D >());
+    }
+  }
+
+  virtual void read(const cv::FileNode &fn) {
+    clear();
+    for (cv::FileNodeIterator node = fn.begin(); node != fn.end(); ++node) {
+      if (!(*node).isNamed()) { // operator-> did not work
+        continue;
+      }
+      const cv::Ptr< FeatureParameters > p(createFeatureParameters((*node).name()));
+      if (!p) {
+        continue;
+      }
+      p->read(*node);
+      push_back(p);
+    }
+  }
+
+  virtual void write(cv::FileStorage &fs) const {
+    for (std::vector< cv::Ptr< FeatureParameters > >::const_iterator p = begin(); p != end(); ++p) {
+      if (!(*p)) {
+        continue;
+      }
+      fs << (*p)->getDefaultName() << "{";
+      (*p)->write(fs);
+      fs << "}";
+    }
+  }
+
+  virtual std::string getDefaultName() const { return "AIFParameters"; }
 };
 
 //
@@ -176,6 +233,7 @@ public:
   } while (false)
 
 static inline cv::Ptr< FeatureParameters > createFeatureParameters(const std::string &type_name) {
+  AIF_RETURN_IF_CREATE(AIFParameters);
   AIF_RETURN_IF_CREATE(AKAZEParameters);
   AIF_RETURN_IF_CREATE(BRISKParameters);
   AIF_RETURN_IF_CREATE(SIFTParameters);
@@ -191,6 +249,7 @@ static inline cv::Ptr< FeatureParameters > createFeatureParameters(const std::st
   } while (false)
 
 template <> cv::Ptr< FeatureParameters > load< FeatureParameters >(const cv::FileNode &fn) {
+  AIF_RETURN_IF_LOAD(AIFParameters);
   AIF_RETURN_IF_LOAD(AKAZEParameters);
   AIF_RETURN_IF_LOAD(BRISKParameters);
   AIF_RETURN_IF_LOAD(SIFTParameters);
