@@ -115,7 +115,7 @@ find_package(
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
   INCLUDE_DIRS include
-#  LIBRARIES affine_invariant_features
+  LIBRARIES ${Boost_LIBRARIES} ${OpenCV_LIBRARIES} ${OPENSSL_LIBRARIES} #affine_invariant_features
   CATKIN_DEPENDS roscpp roslib
 #  DEPENDS system_lib
 )
