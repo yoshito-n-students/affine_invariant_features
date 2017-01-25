@@ -43,12 +43,12 @@ public:
     case 0:
       return cv::Ptr< cv::Feature2D >();
     case 1:
-      return AffineInvariantFeature::create(at(0) ? at(0)->createFeature()
-                                                  : cv::Ptr< cv::Feature2D >());
+      return AffineInvariantFeature::create((*this)[0] ? (*this)[0]->createFeature()
+                                                       : cv::Ptr< cv::Feature2D >());
     default:
       return AffineInvariantFeature::create(
-          at(0) ? at(0)->createFeature() : cv::Ptr< cv::Feature2D >(),
-          at(1) ? at(1)->createFeature() : cv::Ptr< cv::Feature2D >());
+          (*this)[0] ? (*this)[0]->createFeature() : cv::Ptr< cv::Feature2D >(),
+          (*this)[1] ? (*this)[1]->createFeature() : cv::Ptr< cv::Feature2D >());
     }
   }
 
