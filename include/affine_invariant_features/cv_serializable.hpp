@@ -11,6 +11,7 @@
 namespace affine_invariant_features {
 
 struct CvSerializable {
+public:
   CvSerializable() {}
 
   virtual ~CvSerializable() {}
