@@ -43,12 +43,12 @@ public:
     case 0:
       return cv::Ptr< cv::Feature2D >();
     case 1:
-      return AffineInvariantFeature::create(at(0) ? at(0)->createFeature()
-                                                  : cv::Ptr< cv::Feature2D >());
+      return AffineInvariantFeature::create((*this)[0] ? (*this)[0]->createFeature()
+                                                       : cv::Ptr< cv::Feature2D >());
     default:
       return AffineInvariantFeature::create(
-          at(0) ? at(0)->createFeature() : cv::Ptr< cv::Feature2D >(),
-          at(1) ? at(1)->createFeature() : cv::Ptr< cv::Feature2D >());
+          (*this)[0] ? (*this)[0]->createFeature() : cv::Ptr< cv::Feature2D >(),
+          (*this)[1] ? (*this)[1]->createFeature() : cv::Ptr< cv::Feature2D >());
     }
   }
 
@@ -79,50 +79,6 @@ public:
   }
 
   virtual std::string getDefaultName() const { return "AIFParameters"; }
-};
-
-//
-// SIFT
-//
-
-struct SIFTParameters : public FeatureParameters {
-public:
-  // opencv does not provide interfaces to access default SIFT parameters.
-  // thus values below are copied from online reference.
-  SIFTParameters()
-      : nfeatures(0), nOctaveLayers(3), contrastThreshold(0.04), edgeThreshold(10.), sigma(1.6) {}
-
-  virtual ~SIFTParameters() {}
-
-  virtual cv::Ptr< cv::Feature2D > createFeature() const {
-    return cv::xfeatures2d::SIFT::create(nfeatures, nOctaveLayers, contrastThreshold, edgeThreshold,
-                                         sigma);
-  }
-
-  virtual void read(const cv::FileNode &fn) {
-    fn["nfeatures"] >> nfeatures;
-    fn["nOctaveLayers"] >> nOctaveLayers;
-    fn["contrastThreshold"] >> contrastThreshold;
-    fn["edgeThreshold"] >> edgeThreshold;
-    fn["sigma"] >> sigma;
-  }
-
-  virtual void write(cv::FileStorage &fs) const {
-    fs << "nfeatures" << nfeatures;
-    fs << "nOctaveLayers" << nOctaveLayers;
-    fs << "contrastThreshold" << contrastThreshold;
-    fs << "edgeThreshold" << edgeThreshold;
-    fs << "sigma" << sigma;
-  }
-
-  virtual std::string getDefaultName() const { return "SIFTParameters"; }
-
-public:
-  int nfeatures;
-  int nOctaveLayers;
-  double contrastThreshold;
-  double edgeThreshold;
-  double sigma;
 };
 
 //
@@ -170,7 +126,7 @@ public:
 
 protected:
   static const cv::AKAZE &defaultAKAZE() {
-    static cv::Ptr< cv::AKAZE > default_akaze(cv::AKAZE::create());
+    static cv::Ptr< const cv::AKAZE > default_akaze(cv::AKAZE::create());
     CV_Assert(default_akaze);
     return *default_akaze;
   }
@@ -221,6 +177,101 @@ public:
 };
 
 //
+// SIFT
+//
+
+struct SIFTParameters : public FeatureParameters {
+public:
+  // opencv does not provide interfaces to access default SIFT parameters.
+  // thus values below are copied from online reference.
+  SIFTParameters()
+      : nfeatures(0), nOctaveLayers(3), contrastThreshold(0.04), edgeThreshold(10.), sigma(1.6) {}
+
+  virtual ~SIFTParameters() {}
+
+  virtual cv::Ptr< cv::Feature2D > createFeature() const {
+    return cv::xfeatures2d::SIFT::create(nfeatures, nOctaveLayers, contrastThreshold, edgeThreshold,
+                                         sigma);
+  }
+
+  virtual void read(const cv::FileNode &fn) {
+    fn["nfeatures"] >> nfeatures;
+    fn["nOctaveLayers"] >> nOctaveLayers;
+    fn["contrastThreshold"] >> contrastThreshold;
+    fn["edgeThreshold"] >> edgeThreshold;
+    fn["sigma"] >> sigma;
+  }
+
+  virtual void write(cv::FileStorage &fs) const {
+    fs << "nfeatures" << nfeatures;
+    fs << "nOctaveLayers" << nOctaveLayers;
+    fs << "contrastThreshold" << contrastThreshold;
+    fs << "edgeThreshold" << edgeThreshold;
+    fs << "sigma" << sigma;
+  }
+
+  virtual std::string getDefaultName() const { return "SIFTParameters"; }
+
+public:
+  int nfeatures;
+  int nOctaveLayers;
+  double contrastThreshold;
+  double edgeThreshold;
+  double sigma;
+};
+
+//
+// SURF
+//
+
+struct SURFParameters : public FeatureParameters {
+public:
+  SURFParameters()
+      : hessianThreshold(defaultSURF().getHessianThreshold()),
+        nOctaves(defaultSURF().getNOctaves()), nOctaveLayers(defaultSURF().getNOctaveLayers()),
+        extended(defaultSURF().getExtended()), upright(defaultSURF().getUpright()) {}
+
+  virtual ~SURFParameters() {}
+
+  virtual cv::Ptr< cv::Feature2D > createFeature() const {
+    return cv::xfeatures2d::SURF::create(hessianThreshold, nOctaves, nOctaveLayers, extended,
+                                         upright);
+  }
+
+  virtual void read(const cv::FileNode &fn) {
+    fn["hessianThreshold"] >> hessianThreshold;
+    fn["nOctaves"] >> nOctaves;
+    fn["nOctaveLayers"] >> nOctaveLayers;
+    fn["extended"] >> extended;
+    fn["upright"] >> upright;
+  }
+
+  virtual void write(cv::FileStorage &fs) const {
+    fs << "hessianThreshold" << hessianThreshold;
+    fs << "nOctaves" << nOctaves;
+    fs << "nOctaveLayers" << nOctaveLayers;
+    fs << "extended" << extended;
+    fs << "upright" << upright;
+  }
+
+  virtual std::string getDefaultName() const { return "SURFParameters"; }
+
+protected:
+  static const cv::xfeatures2d::SURF &defaultSURF() {
+    static cv::Ptr< const cv::xfeatures2d::SURF > default_surf(cv::xfeatures2d::SURF::create());
+    CV_Assert(default_surf);
+    return *default_surf;
+  }
+
+public:
+  double hessianThreshold;
+  int nOctaves;
+  int nOctaveLayers;
+  bool extended;
+  bool upright;
+};
+
+//
 // Utility functions to create or read variants of FeatureParameters
 //
 
@@ -237,6 +288,7 @@ static inline cv::Ptr< FeatureParameters > createFeatureParameters(const std::st
   AIF_RETURN_IF_CREATE(AKAZEParameters);
   AIF_RETURN_IF_CREATE(BRISKParameters);
   AIF_RETURN_IF_CREATE(SIFTParameters);
+  AIF_RETURN_IF_CREATE(SURFParameters);
   return cv::Ptr< FeatureParameters >();
 }
 
@@ -253,6 +305,7 @@ template <> cv::Ptr< FeatureParameters > load< FeatureParameters >(const cv::Fil
   AIF_RETURN_IF_LOAD(AKAZEParameters);
   AIF_RETURN_IF_LOAD(BRISKParameters);
   AIF_RETURN_IF_LOAD(SIFTParameters);
+  AIF_RETURN_IF_LOAD(SURFParameters);
   return cv::Ptr< FeatureParameters >();
 }
 }
