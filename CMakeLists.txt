@@ -20,6 +20,7 @@ find_package(
   calib3d
   core
   features2d
+  flann
   highgui
   imgproc
   xfeatures2d

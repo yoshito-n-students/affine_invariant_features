@@ -12,6 +12,7 @@
 #include <opencv2/calib3d.hpp>
 #include <opencv2/core.hpp>
 #include <opencv2/features2d.hpp>
+#include <opencv2/flann.hpp>
 
 namespace affine_invariant_features {
 
@@ -114,6 +115,6 @@ private:
   const cv::Ptr< const Results > reference_;
   cv::Ptr< cv::DescriptorMatcher > matcher_;
 };
-}
+} // namespace affine_invariant_features
 
 #endif
