@@ -83,6 +83,8 @@ public:
       } catch (const cv::Exception & /* error */) {
         // cv::findHomography may fail when no good transform is found.
         // in this case, disable all matches.
+        ROS_INFO("An exception from cv::findHomography() was properly handled. "
+                 "An error message may be printed just before this message but it is still ok.");
         transform = cv::Matx33f::eye();
         mask.resize(source_points.size(), 0);
       }
