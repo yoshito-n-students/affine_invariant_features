@@ -5,6 +5,7 @@
 
 #include <affine_invariant_features/parallel_tasks.hpp>
 #include <affine_invariant_features/results.hpp>
+#include <ros/console.h>
 
 #include <boost/bind.hpp>
 #include <boost/ref.hpp>
@@ -77,7 +78,14 @@ public:
         source_points.push_back(source.keypoints[m->queryIdx].pt);
         reference_points.push_back(reference_->keypoints[m->trainIdx].pt);
       }
-      transform = cv::findHomography(source_points, reference_points, cv::RANSAC, 5., mask);
+      try {
+        transform = cv::findHomography(source_points, reference_points, cv::RANSAC, 5., mask);
+      } catch (const cv::Exception & /* error */) {
+        // cv::findHomography may fail when no good transform is found.
+        // in this case, disable all matches.
+        transform = cv::Matx33f::eye();
+        mask.resize(source_points.size(), 0);
+      }
     }
 
     // pack the final matches
