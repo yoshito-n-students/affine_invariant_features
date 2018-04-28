@@ -95,5 +95,7 @@ protected:
   const cv::Ptr< cv::Feature2D > detector_;
   const cv::Ptr< cv::Feature2D > extractor_;
 };
-}
+
+} // namespace affine_invariant_features
+
 #endif

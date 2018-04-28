@@ -136,6 +136,7 @@ private:
   const cv::Ptr< const Results > reference_;
   cv::Ptr< cv::DescriptorMatcher > matcher_;
 };
+
 } // namespace affine_invariant_features
 
 #endif
