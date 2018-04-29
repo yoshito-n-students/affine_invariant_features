@@ -309,11 +309,6 @@ template <> cv::Ptr< FeatureParameters > load< FeatureParameters >(const cv::Fil
   return cv::Ptr< FeatureParameters >();
 }
 
-template <> cv::Ptr< cv::Feature2D > load< cv::Feature2D >(const cv::FileNode &fn) {
-  const cv::Ptr< const FeatureParameters > params(load< FeatureParameters >(fn));
-  return params ? params->createFeature() : cv::Ptr< cv::Feature2D >();
-}
-
 } // namespace affine_invariant_features
 
 #endif
