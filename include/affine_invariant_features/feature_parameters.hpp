@@ -2,6 +2,7 @@
 #define AFFINE_INVARIANT_FEATURES_FEATURE_PARAMETERS
 
 #include <string>
+#include <vector>
 
 #include <affine_invariant_features/affine_invariant_feature.hpp>
 #include <affine_invariant_features/cv_serializable.hpp>
@@ -274,6 +275,22 @@ public:
 //
 // Utility functions to create or read variants of FeatureParameters
 //
+
+#define AIF_APPEND_DEFAULT_NAME(names, type)                                                       \
+  do {                                                                                             \
+    const cv::Ptr< type > params(new type());                                                      \
+    names.push_back(params->getDefaultName());                                                     \
+  } while (false)
+
+static inline std::vector< std::string > getFeatureParameterNames() {
+  std::vector< std::string > names;
+  AIF_APPEND_DEFAULT_NAME(names, AIFParameters);
+  AIF_APPEND_DEFAULT_NAME(names, AKAZEParameters);
+  AIF_APPEND_DEFAULT_NAME(names, BRISKParameters);
+  AIF_APPEND_DEFAULT_NAME(names, SIFTParameters);
+  AIF_APPEND_DEFAULT_NAME(names, SURFParameters);
+  return names;
+}
 
 #define AIF_RETURN_IF_CREATE(type)                                                                 \
   do {                                                                                             \

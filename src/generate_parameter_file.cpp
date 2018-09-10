@@ -1,5 +1,6 @@
 #include <iostream>
 #include <string>
+#include <vector>
 
 #include <affine_invariant_features/feature_parameters.hpp>
 
@@ -12,14 +13,25 @@ int main(int argc, char *argv[]) {
   namespace aif = affine_invariant_features;
 
   const cv::CommandLineParser args(
-      argc, argv, "{ help | | }"
-                  "{ non-aif | | generate non affine invariant feature parameters }"
-                  "{ @type | <none> | type of first parameter set }"
-                  "{ @file | <none> | output file }"
-                  "{ @type2 | | type of second parameter set (optional) }");
+      argc, argv,
+      "{ help | | }"
+      "{ non-aif | | generate non affine invariant feature parameters }"
+      "{ list | | list available type names of parameter sets }"
+      "{ @type | <none> | type of first parameter set }"
+      "{ @file | <none> | output file }"
+      "{ @type2 | | type of second parameter set (optional) }");
 
   if (args.has("help")) {
     args.printMessage();
+    return 0;
+  }
+
+  if (args.has("list")) {
+    const std::vector< std::string > names(aif::getFeatureParameterNames());
+    for (std::vector< std::string >::const_iterator name = names.begin(); name != names.end();
+         ++name) {
+      std::cout << *name << std::endl;
+    }
     return 0;
   }
 
