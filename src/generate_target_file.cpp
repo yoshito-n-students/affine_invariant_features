@@ -13,9 +13,9 @@ int main(int argc, char *argv[]) {
 
   const cv::CommandLineParser args(
       argc, argv, "{ help | | }"
-                  "{ @image | <none> | absolute, or relative to the current path or a ROS package }"
+                  "{ @image | <none> | absolute, or relative to the current path or <package> }"
                   "{ @file | <none> | output file describing the image }"
-                  "{ @package | | optional path of a ROS package where the image is }");
+                  "{ @package | | optional name of a ROS package where the image locates }");
 
   if (args.has("help")) {
     args.printMessage();
