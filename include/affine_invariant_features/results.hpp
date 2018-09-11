@@ -36,6 +36,7 @@ public:
   cv::Mat descriptors;
   int normType; // cv::NormTypes
 };
-}
+
+} // namespace affine_invariant_features
 
 #endif

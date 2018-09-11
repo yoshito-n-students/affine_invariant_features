@@ -299,8 +299,10 @@ protected:
     cv::Mat dst_mat(dst.getMat());
     int rows(0);
     for (std::size_t i = 0; i < src.size(); ++i) {
-      src[i].copyTo(dst_mat.rowRange(rows, rows + src[i].rows));
-      rows += src[i].rows;
+      if (src[i].rows > 0) {
+        src[i].copyTo(dst_mat.rowRange(rows, rows + src[i].rows));
+        rows += src[i].rows;
+      }
     }
   }
 
@@ -310,6 +312,7 @@ protected:
   std::size_t ntasks_;
   const double nstripes_;
 };
-}
+
+} // namespace affine_invariant_features
 
 #endif

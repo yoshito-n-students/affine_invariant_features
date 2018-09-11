@@ -156,6 +156,7 @@ template <> cv::Ptr< TargetData > load< TargetData >(const cv::FileNode &fn) {
   const cv::Ptr< const TargetDescription > desc(load< TargetDescription >(fn));
   return desc ? TargetData::retrieve(*desc) : cv::Ptr< TargetData >();
 }
-}
+
+} // namespace affine_invariant_features
 
 #endif

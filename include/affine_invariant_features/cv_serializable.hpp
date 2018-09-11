@@ -62,6 +62,7 @@ read(const cv::FileNode &fn, T &val, const T &default_val) {
 static inline void write(cv::FileStorage &fs, const std::string &, const CvSerializable &val) {
   val.write(fs);
 }
-}
+
+} // namespace affine_invariant_features
 
 #endif
