@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package>
   <name>affine_invariant_features</name>
-  <version>0.0.0</version>
+  <version>0.0.1</version>
   <description>The affine_invariant_features package</description>
 
   <!-- One maintainer tag required, multiple allowed, one person per tag --> 
